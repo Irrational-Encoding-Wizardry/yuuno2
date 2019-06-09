@@ -31,12 +31,13 @@ class MessageOutputStream(Resource, ABC):
         pass
 
 
-class Connection(NonAbcResource, NamedTuple):
+class Connection(Resource):
     input: MessageInputStream
     output: MessageOutputStream
 
-    def __init__(self, *args, **kwargs):
-        super().__init__(*args, **kwargs)
+    def __init__(self, input: MessageInputStream, output: MessageOutputStream):
+        self.input = input
+        self.output = output
 
     async def _acquire(self):
         await gather(self.input.acquire(), self.output.acquire())
@@ -48,6 +49,8 @@ class Connection(NonAbcResource, NamedTuple):
             self.input.release(force=False),
             self.output.release(force=False)
         )
+        self.input = None
+        self.output = None
 
     async def close(self):
         await self.ensure_acquired()
