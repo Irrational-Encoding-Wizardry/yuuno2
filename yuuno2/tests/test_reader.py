@@ -20,6 +20,7 @@ class TestNetworkingReader(AsyncTestCase):
             self.assertFalse(task.done())
         self.assertTrue(task.done())
 
+
     async def test_receiving_messages(self):
         m1 = Message({}, [])
         m2 = Message({}, [])

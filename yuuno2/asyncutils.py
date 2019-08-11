@@ -1,4 +1,4 @@
-from asyncio import ensure_future, Future, wait, FIRST_COMPLETED, CancelledError
+from asyncio import ensure_future, Future, wait, FIRST_COMPLETED, CancelledError, TimeoutError
 from typing import TypeVar, Awaitable, Any, Union, NoReturn
 
 T = TypeVar("T")
@@ -22,7 +22,7 @@ async def dynamic_timeout(main: Awaitable[T], closed: Awaitable[Any]) -> T:
         await suppress_cancel(f_main)
         exc = f_closed.exception()
         if exc is None:
-            raise RuntimeError("Closed-Future finished.")
+            raise TimeoutError("Closed-Future finished.")
         raise exc
     else:
         f_closed.cancel()

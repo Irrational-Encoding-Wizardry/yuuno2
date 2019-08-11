@@ -1,0 +1,34 @@
+{
+    "_meta": {
+        "hash": {
+            "sha256": "51bf99fa5f5ae07dbb2eead45020cc92134c46ea368d22e9a49e0d91f2273317"
+        },
+        "pipfile-spec": 6,
+        "requires": {
+            "python_version": "3.7"
+        },
+        "sources": [
+            {
+                "name": "pypi",
+                "url": "https://pypi.org/simple",
+                "verify_ssl": true
+            }
+        ]
+    },
+    "default": {
+        "yuuno-core": {
+            "editable": true,
+            "path": "."
+        }
+    },
+    "develop": {
+        "aiounittest": {
+            "hashes": [
+                "sha256:68ef9f35169544fd81454c754b34d5a05049fd864ae645c003ffb60ccc74a203",
+                "sha256:93d2e3e87fdcdf1c89890d97c853c34bab204c8511b6032bb70ed5647148ea31"
+            ],
+            "index": "pypi",
+            "version": "==1.2.1"
+        }
+    }
+}

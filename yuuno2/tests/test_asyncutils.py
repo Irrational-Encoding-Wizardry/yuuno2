@@ -1,4 +1,4 @@
-from asyncio import sleep, ensure_future, CancelledError
+from asyncio import sleep, ensure_future, CancelledError, TimeoutError
 from typing import NoReturn, Optional, Any
 
 from aiounittest import AsyncTestCase
@@ -63,7 +63,7 @@ class AsyncUtilsTest(AsyncTestCase):
         main = ensure_future(t_sleep(10, o1))
         fail = ensure_future(t_sleep(1))
 
-        with self.assertRaises(RuntimeError):
+        with self.assertRaises(TimeoutError):
             result = await dynamic_timeout(main, fail)
 
         self.assertTrue(main.done())

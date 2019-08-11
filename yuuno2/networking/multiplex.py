@@ -40,6 +40,8 @@ class ChannelOutputStream(MessageOutputStream):
 class Channel(Connection):
 
     def __init__(self, multiplexer: 'Multiplexer', name: str):
+        self._closed = False
+
         self.name = name
         self.multiplexer = multiplexer
 
@@ -49,6 +51,11 @@ class Channel(Connection):
         super().__init__(None, None)
 
     async def deliver(self, message: Optional[Message]) -> NoReturn:
+        if message is None:
+            self._closed = True
+            if not self.acquired:
+                return
+
         await self.ensure_acquired()
         await self.ingress.write(message)
 
@@ -67,7 +74,14 @@ class Channel(Connection):
         register(self, self.egress)
 
     async def _release(self) -> NoReturn:
+        if not self._closed and self.multiplexer.acquired:
+            await self.multiplexer.write(Message({
+                "target": self.name, "type": "close"
+            }))
+        self._closed = True
+
         self.multiplexer.streams.pop(self.name, None)
+
         await self.ingress.release(force=False)
         await self.egress.release(force=False)
         self.ingress = None
@@ -75,14 +89,26 @@ class Channel(Connection):
         self.multiplexer = None
         self._connection_cache = None
 
+    def _ensure_open(self):
+        if self._closed:
+            raise ConnectionResetError
+
     async def read(self) -> Optional[Message]:
+        self._ensure_open()
         return (await self.ingress.input.read())
 
     async def write(self, message: Message):
+        self._ensure_open()
         return (await self.egress.write(message))
 
     async def close(self):
-        return (await self.egress.close())
+        if not self._closed:
+            await self.egress.close()
+        self._closed = True
+
+    @property
+    def closed(self):
+        return self._closed
 
 
 class Multiplexer(Resource):
@@ -95,6 +121,9 @@ class Multiplexer(Resource):
         self.parent = parent
 
     async def _delivered(self, raw: Optional[Message]) -> None:
+        if not self.acquired:
+            return
+
         if raw is None:
             self._shutdown.set()
             return
@@ -106,6 +135,8 @@ class Multiplexer(Resource):
 
         if type in ("close", "illegal"):
             reader = self.streams.pop(connection, None)
+            if reader is None:
+                return
             await reader.deliver(None)
             return
 

@@ -1,6 +1,6 @@
 import time
-from asyncio import get_running_loop
-from asyncio import sleep
+from asyncio import get_running_loop, wait_for
+from asyncio import sleep, TimeoutError
 
 from aiounittest import AsyncTestCase
 
@@ -16,6 +16,15 @@ class TestPipeNetworking(AsyncTestCase):
         async with pc:
             await pc.write(m)
             self.assertIs(m, await pc.read())
+
+    async def test_connection_receive_twice(self):
+        pc = Connection(*pipe())
+        m = Message({}, [])
+        async with pc:
+            await pc.write(m)
+            self.assertIs(m, await pc.read())
+            with self.assertRaises(TimeoutError):
+                await wait_for(pc.read(), 1)
 
     async def test_connection_wait(self):
         pc = Connection(*pipe())
@@ -45,7 +54,7 @@ class TestPipeNetworking(AsyncTestCase):
 
         async def _concurrent():
             t0 = time.time()
-            with self.assertRaises(RuntimeError):
+            with self.assertRaises(TimeoutError):
                 await pc.read()
             t1 = time.time()
             self.assertGreaterEqual(t1-t0, 1)

@@ -96,3 +96,22 @@ class TestMultiplexer(AsyncTestCase):
                 self.assertIsInstance(msg.values, dict)
                 self.assertIn('someval', msg.values)
                 self.assertEqual(123456, msg.values['someval'])
+
+            self.assertTrue(m1_ch.closed)
+            self.assertTrue(m2_ch.closed)
+
+    async def test_multiplexer_forward_close(self):
+        c_m1, c_m2 = pipe_bidi()
+        m1 = Multiplexer(c_m1)
+        m2 = Multiplexer(c_m2)
+
+        async with m1, m2:
+            m1_ch = m1.connect('channel')
+            m2_ch = m2.connect('channel')
+
+            async with m1_ch, m2_ch:
+                await m1_ch.close()
+                self.assertTrue(m1_ch.closed)
+
+                wait_for(await m2_ch.read(), 5)
+                self.assertTrue(m2_ch.closed)
