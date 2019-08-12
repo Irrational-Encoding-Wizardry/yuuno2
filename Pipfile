@@ -8,6 +8,7 @@ aiounittest = "*"
 
 [packages]
 yuuno-core = {editable = true,path = "."}
+ohneio = "*"
 
 [requires]
 python_version = "3.7"

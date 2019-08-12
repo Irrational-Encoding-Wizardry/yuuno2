@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "51bf99fa5f5ae07dbb2eead45020cc92134c46ea368d22e9a49e0d91f2273317"
+            "sha256": "7f0cfb2108abc93be442c0f15b0086a7f6cae472ccf500c9e00156f5ad7d9348"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,13 @@
         ]
     },
     "default": {
+        "ohneio": {
+            "hashes": [
+                "sha256:4d09754ddc90a7785e1c3457b7b8a5654badd7e1611dc0f42ee5a70ca5b4fdc7"
+            ],
+            "index": "pypi",
+            "version": "==0.8.1"
+        },
         "yuuno-core": {
             "editable": true,
             "path": "."
@@ -24,8 +31,7 @@
     "develop": {
         "aiounittest": {
             "hashes": [
-                "sha256:68ef9f35169544fd81454c754b34d5a05049fd864ae645c003ffb60ccc74a203",
-                "sha256:93d2e3e87fdcdf1c89890d97c853c34bab204c8511b6032bb70ed5647148ea31"
+                "sha256:68ef9f35169544fd81454c754b34d5a05049fd864ae645c003ffb60ccc74a203"
             ],
             "index": "pypi",
             "version": "==1.2.1"

@@ -52,7 +52,7 @@ class VapourSynthScript(Script):
         await self.ensure_acquired()
         with self.inside():
             outputs = get_outputs().items()
-        return {k: VapourSynthClip(self, d) for k, d in outputs}
+        return {str(k): VapourSynthClip(self, d) for k, d in outputs}
 
     async def _acquire(self) -> NoReturn:
         with self.environment:

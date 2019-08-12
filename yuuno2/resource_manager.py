@@ -111,6 +111,15 @@ class Resource(ABC):
         if self.acquired:
             await self.release(force=False)
 
+    async def check_acquired(self) -> bool:
+        if not self.acquired:
+            return False
+
+        if await self._release_deferred():
+            return False
+
+        return True
+
     async def ensure_acquired(self) -> NoReturn:
         if not self.acquired:
             raise AssertionError("Resource not acquired.")
