@@ -18,45 +18,47 @@ async def bytes_protocol():
             length = int.from_bytes(sz, 'big')
 
             hdr = await read_exactly(length*4)
-            data = array.array.frombytes('L', hdr)
+            ary = array.array('L')
+            ary.frombytes(hdr)
             if sys.byteorder != "big":
-                data.byteswap()
+                ary.byteswap()
 
-            text, *buffers = [(await read_exactly(l)) for l in data]
+            text, *buffers = [(await read_exactly(l)) for l in ary]
 
-            text = text.encode("utf-8")
+            text = text.decode("utf-8")
             text = json.loads(text)
 
             await emit(Message(text, buffers))
     except ConnectionResetError:
         pass
 
+
 class ByteOutputStream(MessageOutputStream, ABC):
 
-
-    def write_message(self, message: Message) -> bytes:
+    @staticmethod
+    def write_message(message: Message) -> bytes:
         parts = [None]
 
         text, buffers = message
-        parts.append(json.dumps(text, ensure_ascii=True).encode("utf-8"))
+        parts.append(json.dumps(text, ensure_ascii=True, separators=(',', ':')).encode("utf-8"))
         parts.extend(buffers)
 
         hdr = array.array(
             'L',
-            [len(parts)] + [len(part) for part in itertools.islice(parts, 1, None, None)]
+            [len(parts)-1] + [len(part) for part in itertools.islice(parts, 1, None, None)]
         )
         if sys.byteorder != "big":
             hdr.byteswap()
-        parts[0] = hdr.to_bytes()
+        parts[0] = hdr.tobytes()
 
-        return b''.join(parts[0])
+        return b''.join(parts)
 
     @abstractmethod
     async def send(self, data: bytes) -> None:
         pass
 
     async def write(self, message: Message) -> NoReturn:
-        pass
+        await self.send(self.write_message(message))
 
 
 class ByteInputStream(MessageInputStream):

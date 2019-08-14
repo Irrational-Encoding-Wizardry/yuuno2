@@ -55,5 +55,5 @@ class Script(Resource, ABC):
 class ScriptProvider(Resource, ABC):
 
     @abstractmethod
-    async def get(self, **params: Mapping[str, Any]) -> Optional[Script]:
+    async def get(self, **params: Any) -> Optional[Script]:
         pass
