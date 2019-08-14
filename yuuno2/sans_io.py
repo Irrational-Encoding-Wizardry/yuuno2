@@ -1,7 +1,7 @@
 import functools
 from types import new_class
 from collections import deque
-from typing import NoReturn, Coroutine, TypeVar, Generic, Optional, Iterator, Any, Callable, Type
+from typing import NoReturn, Coroutine, TypeVar, Generic, Optional, Iterator, Any, Callable, Type, Awaitable
 
 
 class Buffer(object):
@@ -142,7 +142,7 @@ class _Action(Generic[A]):
             self.kwargs = kwargs
 
         def _handle(self, consumer):
-            func(consumer, *self.args, *self.kwargs)
+            return func(consumer, *self.args, *self.kwargs)
 
         return new_class(
             func.__name__,
@@ -152,71 +152,90 @@ class _Action(Generic[A]):
         )
 
 
-class Consumer(Generic[T]):
+class Consumer(Generic[A]):
 
     _return = _Action.operation(lambda _, v: v)
 
-    def __init__(self, coro: Coroutine[_Action, Any, None]):
-        self.coro = coro
+    def __init__(self, coro: Coroutine):
         self.buffer = Buffer()
-        self.queue = deque()
+        self._queue = [self._return(None)]
+
         self._closed = False
 
-        self._feed_coro(None)
+        self.coro = coro
+        self._init_events = []
+        self._init_events = list(self.feed(b""))
 
     @property
-    def closed(self) -> bool:
-        return self._closed
-
-    def close(self):
-        self._closed = True
+    def closed(self):
+        return self._closed or self.buffer.closed
 
     def _next(self) -> Optional[_Action]:
-        if len(self.queue) == 0:
-            return
+        if len(self._queue) == 0:
+            return None
+        return self._queue.pop()
 
-        return self.queue.popleft()
+    def feed(self, data: Optional[bytes]) -> Iterator[A]:
+        # Run pre-stored events.
+        ie = self._init_events
+        self._init_events = []
+        yield from iter(ie)
 
-    def _feed_coro(self, data: Any) -> NoReturn:
-        # Prime the coroutine.
-        try:
-            action = self.coro.send(data)
-        except StopIteration:
-            action = close()
-            self._closed = True
+        # Ignore closed protocols.
+        if self.closed:
+            raise IOError("Protocol has finished.")
 
-        self.queue.append(action)
+        # Feed the buffer.
+        if data is None:
+            self.buffer.close()
+        else:
+            self.buffer.feed(data)
 
-    def _handle_feed(self) -> Optional[T]:
+        # Fill data.
         for op in iter(self._next, None):
             try:
-                value = op.handle(self)
+                next_op = self.coro.send(op.handle(self))
             except PauseProtocol as e:
-                self.queue.appendleft(self._return(e.value))
+                self._queue.append(self._return(e.value))
                 break
             except EmitEvent as e:
-                return e.value
+                self._queue.append(self._return(None))
+                yield e.value
+            except StopIteration:
+                self._closed = True
+                break
+            except Exception:
+                self._closed = True
+                raise
+            else:
+                self._queue.append(next_op)
 
-            self._feed_coro(value)
-
-    def feed(self, data: Optional[bytes]) -> Iterator[T]:
-        self.buffer.feed(data)
-        yield from iter(self._handle_feed, None)
+    def close(self) -> Iterator[A]:
+        return self.feed(None)
 
 
-def protocol(func: Callable[..., Coroutine[_Action, Any, None]]) -> Callable[..., Consumer[Any]]:
+def protocol(func: Callable[..., Awaitable[_Action]]) -> Callable[..., Consumer]:
     @functools.wraps(func)
-    def _wrapped(*args, **kwargs) -> Consumer:
+    def _wrapped(*args, **kwargs):
         coro = func(*args, **kwargs)
         return Consumer(coro)
     return _wrapped
 
 
+# Base Operations
 @_Action.operation
-def close(consumer: Consumer) -> None:
-    consumer.close()
+def sleep(consumer: Consumer) -> bool:
+    if consumer.buffer.closing:
+        return False
+    raise PauseProtocol(True)
 
 
+@_Action.operation
+def emit(_: Consumer, value: Any) -> None:
+    raise EmitEvent(value)
+
+
+# Buffer Control
 @_Action.operation
 def peek(consumer: Consumer, length: int = 0) -> bytes:
     return consumer.buffer.peek(length)
@@ -233,24 +252,18 @@ def left(consumer: Consumer) -> int:
 
 
 @_Action.operation
+def close(consumer: Consumer) -> None:
+    consumer.buffer.close()
+
+
+@_Action.operation
 def closing(consumer: Consumer) -> bool:
     return consumer.buffer.closing
 
 
-@_Action.operation
-def sleep(consumer: Consumer) -> bool:
-    if consumer.buffer.closing:
-        return False
-    raise PauseProtocol(True)
-
-
-@_Action.operation
-def emit(_: Consumer, value: Any) -> None:
-    raise EmitEvent(value)
-
-
+# Mid-Level commands
 async def wait(length: int = 1) -> None:
-    while length < (await left()):
+    while (await left()) < length:
         if not (await sleep()):
             # Buffer is closing. Prevent sleeping.
             return
