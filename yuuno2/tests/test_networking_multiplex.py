@@ -113,5 +113,5 @@ class TestMultiplexer(AsyncTestCase):
                 await m1_ch.close()
                 self.assertTrue(m1_ch.closed)
 
-                wait_for(await m2_ch.read(), 5)
+                await wait_for(m2_ch.read(), 5)
                 self.assertTrue(m2_ch.closed)

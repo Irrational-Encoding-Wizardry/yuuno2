@@ -16,12 +16,6 @@
         ]
     },
     "default": {
-        "ohneio": {
-            "hashes": [
-                "sha256:4d09754ddc90a7785e1c3457b7b8a5654badd7e1611dc0f42ee5a70ca5b4fdc7"
-            ],
-            "version": "==0.8.1"
-        },
         "yuuno-core": {
             "editable": true,
             "path": "."

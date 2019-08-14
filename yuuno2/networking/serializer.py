@@ -3,9 +3,8 @@ import array
 import itertools
 import sys
 from abc import abstractmethod, ABC
-from asyncio import get_running_loop
-from typing import NoReturn
-
+from asyncio import Queue
+from typing import NoReturn, Optional
 
 from yuuno2.networking.base import Message, MessageOutputStream, MessageInputStream
 from yuuno2.sans_io import protocol, read_exactly, emit, Consumer
@@ -64,7 +63,11 @@ class ByteInputStream(MessageInputStream):
 
     def __init__(self):
         self.protocol: Consumer[Message] = bytes_protocol()
+        self.queue = Queue()
 
     async def feed(self, data: bytes):
         for message in self.protocol.feed(data):
-            self.
+            await self.queue.put(message)
+
+    async def read(self) -> Optional[Message]:
+        return (await self.queue.get())
