@@ -25,14 +25,18 @@ with open('HISTORY.rst', encoding="utf-8") as history_file:
     history = history_file.read()
 
 requirements = [
+    "cachetools"
 ]
 
 test_requirements = [
-    "aiounittest"
+    "aiounittest", "async_timeout"
 ]
 extras_requires = {
     "vapoursynth": ["vapoursynth"]
 }
+setup_requires = [
+
+]
 
 setup(
     name='yuuno-core',
@@ -47,6 +51,7 @@ setup(
     include_package_data=True,
     install_requires=requirements,
     extras_require=extras_requires,
+    setup_requires=setup_requires,
     license="GNU Lesser General Public License v3 (LGPLv3)",
     zip_safe=False,
     keywords='yuuno',

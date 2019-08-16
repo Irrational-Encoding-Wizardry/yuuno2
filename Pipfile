@@ -5,9 +5,11 @@ verify_ssl = true
 
 [dev-packages]
 aiounittest = "*"
+async-timeout = "*"
 
 [packages]
 yuuno-core = {editable = true,path = "."}
+cachetools = "*"
 
 [requires]
 python_version = "3.7"

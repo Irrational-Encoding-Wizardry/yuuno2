@@ -3,7 +3,7 @@ import array
 import itertools
 import sys
 from abc import abstractmethod, ABC
-from asyncio import Queue
+from asyncio import Queue, QueueFull
 from typing import NoReturn, Optional
 
 from yuuno2.networking.base import Message, MessageOutputStream, MessageInputStream
@@ -63,13 +63,36 @@ class ByteOutputStream(MessageOutputStream, ABC):
 
 class ByteInputStream(MessageInputStream):
 
-    def __init__(self):
+    def __init__(self, maxsize=50):
         self.protocol: Consumer[Message] = bytes_protocol()
-        self.queue = Queue()
+        self.queue = Queue(maxsize=maxsize)
+        self._queue_is_full = False
 
-    async def feed(self, data: bytes):
+    def continue_running(self):
+        self.feed(b"")
+
+    def queue_filled(self):
+        pass
+
+    def queue_active(self):
+        pass
+
+    def feed(self, data: bytes):
         for message in self.protocol.feed(data):
-            await self.queue.put(message)
+            if self.queue.full():
+                return
+
+            self.queue.put_nowait(message)
+            if self.queue.full():
+                self._queue_is_full = True
+                self.queue_filled()
+                return
+
+        if not self.queue.full() and self._queue_is_full:
+            self._queue_is_full = False
+            self.queue_active()
 
     async def read(self) -> Optional[Message]:
-        return (await self.queue.get())
+        read = (await self.queue.get())
+        self.continue_running()
+        return read

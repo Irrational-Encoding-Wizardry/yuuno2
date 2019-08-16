@@ -92,6 +92,15 @@ class TestBuffer(TestCase):
 
 class ConsumerTest(TestCase):
 
+    def test_consumer_buffer_feed_noiter(self):
+        @protocol
+        async def _parser():
+            await sleep()
+
+        consumer = _parser()
+        consumer.feed(b"123")
+        self.assertEqual(len(consumer.buffer), 3)
+
     def test_consumer_finish(self):
         @protocol
         async def _parser1():

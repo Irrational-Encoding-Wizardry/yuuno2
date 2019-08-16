@@ -113,7 +113,7 @@ class RemoteFrame(Frame):
             self.client.format(frame=self.frame)
         )
         self._size = Size(*msg_sz.values)
-        self._format = RawFormat.from_json(msg_format.values)
+        self._native_format = RawFormat.from_json(msg_format.values)
 
     async def _release(self) -> NoReturn:
         await self.remote_clip.release(force=False)

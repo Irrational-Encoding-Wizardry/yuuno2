@@ -72,7 +72,9 @@ class TestResource(AsyncTestCase):
         await r2.acquire()
         resource_manager.register(r1, r2)
 
-        del r1
+        with self.assertWarns(ResourceWarning):
+            del r1
+
         self.assertTrue(await r2._release_deferred())
         self.assertFalse(r2.acquired)
 

@@ -111,12 +111,12 @@ class LazyRemoteScript(RemoteScript):
         self._params = params
         self._script_name = f"script:{id(self)}"
 
-    def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> NoReturn:
         await self._remote._client.create_script(channel_name=self._script_name, params=self._params)
         self.connection = self._remote._multiplexer.connect()
         return (await super()._acquire())
 
-    def _release(self) -> NoReturn:
+    async def _release(self) -> NoReturn:
         await self._remote._client.release_script(channel_name=self._script_name)
         return (await super()._release())
 

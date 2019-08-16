@@ -170,17 +170,16 @@ class Consumer(Generic[A]):
     def closed(self):
         return self._closed or self.buffer.closed
 
+    @property
+    def closing(self):
+        return self.closed or self.buffer.closing
+
     def _next(self) -> Optional[_Action]:
         if len(self._queue) == 0:
             return None
         return self._queue.pop()
 
     def feed(self, data: Optional[bytes]) -> Iterator[A]:
-        # Run pre-stored events.
-        ie = self._init_events
-        self._init_events = []
-        yield from iter(ie)
-
         # Ignore closed protocols.
         if self.closed:
             raise IOError("Protocol has finished.")
@@ -190,6 +189,14 @@ class Consumer(Generic[A]):
             self.buffer.close()
         else:
             self.buffer.feed(data)
+
+        return self._execute()
+
+    def _execute(self) -> Iterator[A]:
+        # Run pre-stored events.
+        ie = self._init_events
+        self._init_events = []
+        yield from iter(ie)
 
         # Fill data.
         for op in iter(self._next, None):

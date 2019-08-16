@@ -79,7 +79,7 @@ class RemoteScriptServer(MultiplexedServer):
         super().__init__(connection)
         self.script = script
 
-    async def create_server(self, connection: Connection) -> Resource:
+    def create_server(self, connection: Connection) -> Resource:
         return _RemoteScriptServer(self.script, connection, self._multiplexer)
 
 
@@ -115,5 +115,5 @@ class RemoteScriptProviderServer(MultiplexedServer):
         super().__init__(connection)
         self.provider = provider
 
-    async def create_server(self, connection: Connection) -> Resource:
+    def create_server(self, connection: Connection) -> Resource:
         return _RemoteScriptProviderServer(self.provider, connection, self._multiplexer)

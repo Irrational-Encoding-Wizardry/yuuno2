@@ -70,6 +70,10 @@ class MockClip(Clip):
 
 
 class MockScript(script.Script):
+
+    def __init__(self, config=None):
+        self.config = config or {}
+
     def activate(self) -> NoReturn:
         pass
 
@@ -77,19 +81,23 @@ class MockScript(script.Script):
         pass
 
     async def set_config(self, key: str, value: ConfigTypes) -> NoReturn:
-        pass
+        self.config[key] = value
 
     async def get_config(self, key: str, default: Union[object, ConfigTypes] = NOT_GIVEN) -> ConfigTypes:
-        pass
+        if key not in self.config:
+            if default is NOT_GIVEN:
+                raise KeyError(key)
+            return default
+        return self.config[key]
 
     async def list_config(self) -> Sequence[str]:
-        pass
+        return list(self.config)
 
     async def run(self, code: Union[bytes, str]) -> Any:
-        pass
+        self.config["last-command"] = code
 
     async def retrieve_clips(self) -> Mapping[str, Clip]:
-        pass
+        return {"test": MockClip()}
 
     async def _acquire(self) -> NoReturn:
         pass
@@ -100,7 +108,7 @@ class MockScript(script.Script):
 
 class MockScriptProvider(script.ScriptProvider):
     async def get(self, **params: Mapping[str, Any]) -> Optional[Script]:
-        return MockScript()
+        return MockScript(params)
 
     async def _acquire(self) -> NoReturn:
         pass

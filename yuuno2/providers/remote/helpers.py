@@ -13,10 +13,10 @@ ConverterTypeRecv = Callable[[ConfigTypes, List[bytes]], ConfigTypes]
 NoneType = type(None)
 
 
-IDENTITY_RECV: ConverterTypeSend = lambda x:    (x,    [])
-IDENTITY_SEND: ConverterTypeRecv = lambda d, b: d
-BYTES_RECV:    ConverterTypeSend = lambda x:    (None, [x])
-BYTES_SEND:    ConverterTypeRecv = lambda d, b: b[0]
+IDENTITY_SEND: ConverterTypeSend = lambda x:    (x,    [])
+IDENTITY_RECV: ConverterTypeRecv = lambda d, b: d
+BYTES_SEND:    ConverterTypeSend = lambda x:    (None, [x])
+BYTES_RECV:    ConverterTypeRecv = lambda d, b: b[0]
 
 
 TYPE_MAP_SEND: Dict[Type[ConfigTypes], Tuple[str, ConverterTypeSend]] = {
@@ -58,7 +58,7 @@ class Multiplexed(Resource, ABC):
         self._channel = self._multiplexer.connect("control")
         await self._channel.acquire()
 
-        self._control = self.create_client(self._channel)
+        self._control = self.create_endpoint(self._channel)
         register(self, self._control)
         await self._control.acquire()
 
@@ -93,8 +93,5 @@ class MultiplexedServer(Multiplexed):
 
     @abstractmethod
     def create_server(self, connection: Connection) -> ReqRespServer:
-        pass
-
-        self._client = self.create_server(self._channel)
-        register(self, self._client)
-        await self._client.acquire()
+        self._server = self.create_server(self._channel)
+        return self._server

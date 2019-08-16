@@ -44,6 +44,7 @@ class Connection(Resource):
         register(self.input, self)
         register(self.output, self)
 
+
     async def _release(self):
         await gather(
             self.input.release(force=False),
@@ -63,3 +64,38 @@ class Connection(Resource):
     async def read(self) -> Optional[Message]:
         await self.ensure_acquired()
         return (await self.input.read())
+
+
+class ConnectionOutputStream(MessageOutputStream):
+
+    def __init__(self, connection: Connection):
+        self.connection = connection
+
+    async def write(self, message: Message) -> NoReturn:
+        return await self.connection.write(message)
+
+    async def close(self) -> NoReturn:
+        return await self.connection.close()
+
+    async def _acquire(self) -> NoReturn:
+        await self.connection.acquire()
+        register(self.connection, self)
+
+    async def _release(self) -> NoReturn:
+        await self.connection.release(force=False)
+
+
+class ConnectionInputStream(MessageInputStream):
+
+    def __init__(self, connection: Connection):
+        self.connection = connection
+
+    async def read(self) -> Optional[Message]:
+        return await self.connection.read()
+
+    async def _acquire(self) -> NoReturn:
+        await self.connection.acquire()
+        register(self.connection, self)
+
+    async def _release(self) -> NoReturn:
+        await self.connection.release(force=False)

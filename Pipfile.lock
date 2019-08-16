@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "51bf99fa5f5ae07dbb2eead45020cc92134c46ea368d22e9a49e0d91f2273317"
+            "sha256": "ac82a5cfc14352ed7f2242de281209d0b9f6b520333dfc7b1475af52b6850cf5"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,14 @@
         ]
     },
     "default": {
+        "cachetools": {
+            "hashes": [
+                "sha256:428266a1c0d36dc5aca63a2d7c5942e88c2c898d72139fca0e97fdd2380517ae",
+                "sha256:8ea2d3ce97850f31e4a08b0e2b5e6c34997d7216a9d2c98e0f3978630d4da69a"
+            ],
+            "index": "pypi",
+            "version": "==3.1.1"
+        },
         "yuuno-core": {
             "editable": true,
             "path": "."
@@ -28,6 +36,14 @@
             ],
             "index": "pypi",
             "version": "==1.2.1"
+        },
+        "async-timeout": {
+            "hashes": [
+                "sha256:0c3c816a028d47f659d6ff5c745cb2acf1f966da1fe5c19c77a70282b25f4c5f",
+                "sha256:4291ca197d287d274d0b6cb5d6f8f8f82d434ed288f962539ff18cc9012f9ea3"
+            ],
+            "index": "pypi",
+            "version": "==3.0.1"
         }
     }
 }

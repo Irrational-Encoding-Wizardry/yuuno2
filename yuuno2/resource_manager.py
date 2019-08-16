@@ -2,10 +2,9 @@
 This class manages asynchronous resource management.
 """
 
-import sys
 from _weakref import ref
 from _weakrefset import WeakSet
-from typing import Set, MutableMapping, NoReturn, Optional, Callable, List, Any, Union
+from typing import Set, MutableMapping, NoReturn, Optional, Callable, List, Union
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from weakref import WeakKeyDictionary
@@ -70,9 +69,12 @@ class Resource(ABC):
 
         try:
             await self._acquire()
-        except:
-            await self.release()
-            raise
+        except Exception as e:
+            try:
+                await self.release()
+            except Exception as e_sub:
+                e_sub.__context__ = e
+                raise e_sub
 
     async def release(self, *, force=True) -> NoReturn:
         """
@@ -129,7 +131,12 @@ class Resource(ABC):
 
     def __del__(self):
         if self.acquired:
-            print(f"Resource {self!r} was never released. Did you do this by mistake?", file=sys.stderr)
+            import warnings
+            warnings.warn(
+                f"Resource {self!r} was never released. Did you do this by mistake?",
+                ResourceWarning,
+                stacklevel=2
+            )
             _mark_incorrectly_released(self)
             _call_release_cbs(self)
 

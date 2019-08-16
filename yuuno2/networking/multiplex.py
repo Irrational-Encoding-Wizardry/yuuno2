@@ -3,7 +3,8 @@ from typing import Optional, MutableMapping, NoReturn
 
 from yuuno2.resource_manager import register, Resource
 
-from yuuno2.networking.base import Connection, Message, MessageOutputStream
+from yuuno2.networking.base import Connection, Message, MessageOutputStream, ConnectionInputStream, \
+    ConnectionOutputStream
 from yuuno2.networking.reader import ReaderTask
 from yuuno2.networking.pipe import PipeOutputStream, PipeInputStream, pipe
 
@@ -24,11 +25,8 @@ class ChannelOutputStream(MessageOutputStream):
         if self.channel.ingress is not None and self.channel.ingress.output is not None:
             await self.channel.ingress.close()
 
-        await gather(
-            self.channel.multiplexer.write(
-                Message({'target': self.channel.name, 'type': 'close'})
-            )
-        )
+        if self.channel.multiplexer.acquired:
+            await self.channel.multiplexer.write(Message({'target': self.channel.name, 'type': 'close'}))
 
     async def _acquire(self) -> NoReturn:
         pass
@@ -49,6 +47,9 @@ class Channel(Connection):
         self.egress: Optional[ChannelOutputStream] = None
         self._connection_cache = None
         super().__init__(None, None)
+
+        self.input = ConnectionInputStream(self)
+        self.output = ConnectionOutputStream(self)
 
     async def deliver(self, message: Optional[Message]) -> NoReturn:
         if message is None:
@@ -73,7 +74,11 @@ class Channel(Connection):
         await self.egress.acquire()
         register(self, self.egress)
 
+        await gather(self.input.acquire(), self.output.acquire())
+
     async def _release(self) -> NoReturn:
+        await gather(self.input.release(), self.output.release())
+
         if not self._closed and self.multiplexer.acquired:
             await self.multiplexer.write(Message({
                 "target": self.name, "type": "close"
