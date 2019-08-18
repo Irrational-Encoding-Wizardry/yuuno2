@@ -21,7 +21,7 @@ class _RemoteScriptServer(ReqRespServer):
         self.multiplexer = multiplexer
         self.connections = {}
 
-    async def on_set_config(self, key: str, value: ConfigTypes, type: str, _buffers: List[bytes]):
+    async def on_set_config(self, key: str, value: ConfigTypes, type: str, _buffers: List[bytes] = ()):
         converter: ConverterTypeRecv = TYPE_MAP_RECV[type]
         value = converter(value, _buffers)
         await self.script.set_config(key, value)
@@ -53,8 +53,8 @@ class _RemoteScriptServer(ReqRespServer):
         clips = list((await self.script.retrieve_clips()).keys())
         return Message({'clips': clips}, [])
 
-    async def on_register_clip(self, channel_name: str, name: str):
-        conn = self.multiplexer.connect(channel_name)
+    async def on_register_clip(self, channel: str, name: str):
+        conn = self.multiplexer.connect(channel)
         register(self, conn)
         await conn.acquire()
 
@@ -65,11 +65,11 @@ class _RemoteScriptServer(ReqRespServer):
         register(conn, server)
         await server.acquire()
 
-        self.connections[channel_name] = conn
+        self.connections[channel] = conn
         return Message({}, [])
 
-    async def on_unregister_clip(self, channel_name: str):
-        await self.connections[channel_name].release()
+    async def on_unregister_clip(self, channel: str):
+        await self.connections[channel].release()
         return Message({}, [])
 
 
@@ -107,6 +107,15 @@ class _RemoteScriptProviderServer(ReqRespServer):
     async def on_release_script(self, channel_name: str):
         await self.connections[channel_name].release()
         return Message({}, [])
+
+    async def _acquire(self):
+        await self.provider.acquire()
+        register(self.provider, self)
+        return await super()._acquire()
+
+    async def _release(self):
+        await self.provider.release(force=False)
+        return await super()._release()
 
 
 class RemoteScriptProviderServer(MultiplexedServer):

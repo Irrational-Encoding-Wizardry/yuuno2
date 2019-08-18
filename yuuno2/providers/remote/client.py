@@ -20,7 +20,7 @@ class LazyClip(RemoteClip):
     async def _acquire(self) -> NoReturn:
 
         await self._remote._client.register_clip(channel=self._channel_name, name=self._clip)
-        self._connection = self._remote._multiplexer.connect(self._channel_name)
+        self.connection = self._remote._multiplexer.connect(self._channel_name)
         await super()._acquire()
 
     async def _release(self) -> NoReturn:
@@ -113,7 +113,7 @@ class LazyRemoteScript(RemoteScript):
 
     async def _acquire(self) -> NoReturn:
         await self._remote._client.create_script(channel_name=self._script_name, params=self._params)
-        self.connection = self._remote._multiplexer.connect()
+        self.connection = self._remote._multiplexer.connect(self._script_name)
         return (await super()._acquire())
 
     async def _release(self) -> NoReturn:

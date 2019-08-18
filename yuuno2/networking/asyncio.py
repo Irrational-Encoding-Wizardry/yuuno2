@@ -1,116 +1,156 @@
-from asyncio import Protocol, BaseTransport, get_running_loop, Queue, ReadTransport, Event, Transport
-from typing import NoReturn, Optional
+from asyncio import Protocol, BaseTransport, get_running_loop, sleep
+from asyncio import Queue, Event, Transport, ensure_future, TimeoutError
+from typing import Optional, NoReturn
+from weakref import WeakKeyDictionary
 
-from yuuno2.networking.base import Connection, Message
-from yuuno2.networking.serializer import ByteOutputStream, ByteInputStream, bytes_protocol
+from yuuno2.asyncutils import dynamic_timeout
+from yuuno2.networking.base import Message, MessageInputStream, MessageOutputStream
+from yuuno2.networking.serializer import ByteOutputStream, bytes_protocol
+from yuuno2.resource_manager import ResourceProxy, remove_callback, on_release
 
 
-class YuunoConnection(Connection):
+class ResourceDescriptor(object):
 
-    def __init__(self, *args, **kwargs):
-        self.args = args
-        self.kwargs = kwargs
+    def __init__(self):
+        self._refs = WeakKeyDictionary()
 
-        self.kwargs_proto = {
-            name: kwargs.pop(name)
-            for name in ["maxqueue"]
-            if name in kwargs
-        }
+    def __get__(self, instance, owner):
+        if instance is None:
+            return self
+        return self._refs.get(instance, None)
 
-        self.protocol: Optional['ConnectionReaderProtocol'] = None
+    def _unset_by_expiry(self, rs):
+        if isinstance(rs, ResourceProxy):
+            rs = rs.target
+
+        if rs in self._refs:
+            del self._refs[rs]
+
+    def __set__(self, instance, value):
+        if instance in self._refs:
+            prev = self._refs.pop(instance)
+            if value is not None:
+                remove_callback(prev, self._unset_by_expiry)
+
+        self._refs[instance] = value
+        if value is not None:
+            on_release(value, self._unset_by_expiry)
+
+    def __delete__(self, instance):
+        if instance in self._refs:
+            old = self._refs.pop(instance)
+            if old is not None:
+                remove_callback(old, self._unset_by_expiry)
+
+
+class YuunoProtocol(Protocol):
+    QUEUE_MAXSIZE = 30
+
+    _ingress: Optional[MessageInputStream] = ResourceDescriptor()
+    _egress: Optional[MessageOutputStream] = ResourceDescriptor()
+
+    def __init__(self):
         self.transport: Optional[Transport] = None
+        self.protocol = bytes_protocol()
+        self.rqueue = Queue()
 
-        self.writing_active = Event()
+        self._transport_gate = Event()
+        self._closed = Event()
 
-    async def _acquire(self):
-        loop = get_running_loop()
-        self.transport, self.protocol = await loop.create_connection(
-            lambda: ConnectionReaderProtocol(self, **self.kwargs_proto),
-            *self.args, **self.kwargs
-        )
-        self.writing_active.set()
+    async def _close(self):
+        if self._ingress is not None:
+            await self._ingress.release(force=True)
+        if self._egress is not None:
+            await self._egress.release(force=True)
 
-    async def _release(self):
-        if not self.transport.is_closing():
-            self.transport.close()
-        self.writing_active.clear()
-
-    async def read(self) -> Optional[Message]:
-        await self.ensure_acquired()
-        await self.protocol.read()
-
-    async def write(self, message: Message):
-        await self.ensure_acquired()
-        await self.writing_active.wait()
-        if not self.transport.is_closing():
+    async def read_next_message(self) -> Optional[Message]:
+        if self._closed.is_set():
             return
+
+        try:
+            return await dynamic_timeout(self.rqueue.get(), self._closed.wait())
+        except TimeoutError:
+            return None
+
+    async def write_message(self, message: Message):
+        if self._closed.is_set():
+            return
+
+        try:
+            await dynamic_timeout(self._transport_gate.wait(), self._closed.wait())
+        except TimeoutError:
+            return
+
         self.transport.write(ByteOutputStream.write_message(message))
 
-
-class ConnectionReaderProtocol(Protocol):
-
-    def __init__(self, connection: YuunoConnection, maxqueue: int = 10):
-        self.connection = connection
-        self.transport: Optional[ReadTransport] = None
-
-        self.protocol = bytes_protocol()
-        self.queue = Queue()
-
-        self.maxqueue = maxqueue
+    async def close(self):
+        self.transport.close()
 
     def connection_made(self, transport: BaseTransport) -> None:
-        if not isinstance(transport, ReadTransport):
-            self.transport.close()
-            raise IOError("Transport must be readable.")
         self.transport = transport
+        self._transport_gate.set()
 
-    def _release_connection(self):
-        # Ignore queue-maxsize when closing as we are sure we cannot
-        # receive any more data.
-        if not self.protocol.closing:
-            for message in self.protocol.close():
-                self.queue.put_nowait(message)
+    def _parse_until(self, maxsize: Optional[int] = QUEUE_MAXSIZE):
+        if maxsize is not None and self.rqueue.qsize()>=maxsize:
+            return False
 
-        if not self.transport.is_closing():
-            self.transport.close()
+        for msg in self.protocol.feed(b""):
+            self.rqueue.put_nowait(msg)
+            if maxsize is not None and self.rqueue.qsize() >= maxsize:
+                return False
 
-    def _advance_buffer(self, data: bytes = b""):
-        if self.protocol.closed:
-            return
-
-        it = self.protocol.feed(data)
-        while self.queue.qsize() < self.maxqueue:
-            try:
-                msg = next(it)
-            except StopIteration:
-                return
-            except Exception:
-                self.transport.close()
-                raise
-
-            self.queue.put_nowait(msg)
-
-        if self.queue.qsize() >= self.maxqueue:
-            self.transport.pause_reading()
-        else:
-            self.transport.resume_reading()
-
-    async def read(self) -> Optional[Message]:
-        value = await self.queue.get()
-        self._advance_buffer()
-        return value
-
-    def connection_lost(self, exc: Optional[Exception]) -> None:
-        self._release_connection()
-
-    def eof_received(self) -> Optional[bool]:
-        self._release_connection()
+        return True
 
     def data_received(self, data: bytes) -> None:
-        self._advance_buffer(data)
+        self.protocol.feed(data)
+        if not self._parse_until(maxsize=self.QUEUE_MAXSIZE):
+            self.transport.resume_reading()
 
     def pause_writing(self) -> None:
-        self.connection.writing_active.clear()
+        self._transport_gate.clear()
 
     def resume_writing(self) -> None:
-        self.connection.writing_active.set()
+        self._transport_gate.set()
+
+    def connection_lost(self, exc: Optional[Exception]) -> None:
+        self._transport_gate.clear()
+        self._closed.set()
+        ensure_future(self._close(), loop=get_running_loop())
+        self._parse_until(None)
+
+
+class ConnectionInputStream(MessageInputStream):
+
+    def __init__(self, protocol: YuunoProtocol):
+        self.protocol = protocol
+
+    async def read(self) -> Optional[Message]:
+        return await self.protocol.read_next_message()
+
+    async def _acquire(self) -> NoReturn:
+        self.protocol._ingress = self
+
+    async def _release(self) -> NoReturn:
+        self.protocol._ingress = None
+
+
+class ConnectionOutputStream(MessageOutputStream):
+
+    def __init__(self, protocol: YuunoProtocol):
+        self.protocol = protocol
+
+    async def write(self, message: Message) -> NoReturn:
+        await self.protocol.write_message(message)
+        await sleep(0)
+
+    async def close(self) -> NoReturn:
+        await self.protocol.close()
+
+    async def _acquire(self) -> NoReturn:
+        self.protocol._egress = self
+
+    async def _release(self) -> NoReturn:
+        if self.protocol._egress is self:
+            await self.close()
+
+        self.protocol._egress = None

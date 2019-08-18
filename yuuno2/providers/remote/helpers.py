@@ -27,11 +27,11 @@ TYPE_MAP_SEND: Dict[Type[ConfigTypes], Tuple[str, ConverterTypeSend]] = {
     NoneType: ("null",   IDENTITY_SEND),
 }
 TYPE_MAP_RECV: Dict[str, ConverterTypeRecv] = {
-    "bytes": BYTES_RECV,
-    "str":   IDENTITY_RECV,
-    "int":   IDENTITY_RECV,
-    "float": IDENTITY_RECV,
-    "null":  IDENTITY_RECV,
+    "bytes":  BYTES_RECV,
+    "string": IDENTITY_RECV,
+    "int":    IDENTITY_RECV,
+    "float":  IDENTITY_RECV,
+    "null":   IDENTITY_RECV,
 }
 
 

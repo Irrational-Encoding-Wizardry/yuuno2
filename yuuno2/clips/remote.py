@@ -172,7 +172,7 @@ class RemoteClip(Clip):
         self._sz = None
 
     def __getitem__(self, item) -> Frame:
-        if 0 <= item < len(self):
+        if 0 > item or item >= len(self):
             raise IndexError("Clip index out of range.")
 
         return RemoteFrame(item, self, self._client)

@@ -271,7 +271,7 @@ def _call_release_cbs(resource: Resource):
         cb(resource)
 
 
-def on_release(resource: ResourceTarget, callback: Callable[[Resource], NoReturn]):
+def on_release(resource: ResourceTarget, callback: Callable[[Resource], NoReturn]) -> NoReturn:
     """
     Adds a callback that is called when the resource is about to be released.
 
@@ -281,6 +281,18 @@ def on_release(resource: ResourceTarget, callback: Callable[[Resource], NoReturn
     :param callback: The callback to run.
     """
     _get_state(resource).callbacks.append(callback)
+
+
+def remove_callback(resource: ResourceTarget, callback: Callable[[Resource], NoReturn]) -> NoReturn:
+    """
+    Removes the callback from the callback list.
+
+    :param resource: The resource that is attached.
+    :param callback: The callback to remove.
+    """
+    cbs = _get_state(resource).callbacks
+    if callback in cbs:
+        cbs.remove(callback)
 
 
 async def _release_children(resource: Resource):

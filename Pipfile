@@ -6,10 +6,12 @@ verify_ssl = true
 [dev-packages]
 aiounittest = "*"
 async-timeout = "*"
+vapoursynth = "*"
+vapoursynth-portable = {version = "*",sys_platform = "== 'win32'"}
 
 [packages]
 yuuno-core = {editable = true,path = "."}
-cachetools = "*"
+vapoursynth = "*"
 
 [requires]
 python_version = "3.7"

@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "ac82a5cfc14352ed7f2242de281209d0b9f6b520333dfc7b1475af52b6850cf5"
+            "sha256": "6e28b6912a48a345e09f085911575ad4c8229aecd70bd77c5f5337cde9250407"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -21,7 +21,6 @@
                 "sha256:428266a1c0d36dc5aca63a2d7c5942e88c2c898d72139fca0e97fdd2380517ae",
                 "sha256:8ea2d3ce97850f31e4a08b0e2b5e6c34997d7216a9d2c98e0f3978630d4da69a"
             ],
-            "index": "pypi",
             "version": "==3.1.1"
         },
         "yuuno-core": {
@@ -44,6 +43,24 @@
             ],
             "index": "pypi",
             "version": "==3.0.1"
+        },
+        "vapoursynth": {
+            "hashes": [
+                "sha256:2fc8947e1ba538550ddfbb3db5cf44bdf8c4878dfe71749d2c0b9bc2d9eb5d20",
+                "sha256:659bcab0fa590a830cd63b9e6edb3e4d36eb65b68232e127d112d1ef22cdd76c",
+                "sha256:ac1dd9e66623939c2ffc7b70284b15eadadd654fb76243dd187fb3eb9a81b3c2"
+            ],
+            "index": "pypi",
+            "version": "==47.2"
+        },
+        "vapoursynth-portable": {
+            "hashes": [
+                "sha256:85910535ec1b57bff8ec5c005ae863e47875d5b7a8b29e4e54afd68912d8962b",
+                "sha256:d9ae05fccd9943417c78003d8dfbda41585ad0c46dab533610dbdf18e24db634"
+            ],
+            "index": "pypi",
+            "markers": "sys_platform == 'win32'",
+            "version": "==47.2"
         }
     }
 }

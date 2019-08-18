@@ -54,6 +54,9 @@ class MockFrame(Frame):
 
 class MockClip(Clip):
 
+    def __len__(self):
+        return 1
+
     def __getitem__(self, item) -> Frame:
         return MockFrame()
 

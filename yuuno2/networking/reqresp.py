@@ -127,8 +127,8 @@ class ReqRespServer(Connection):
             raise
 
         except Exception as e:
-            exc = '\n'.join(format_exception(type(e), e, e.__traceback__))
-            raise ReqRespServerException("An error occured while handling the error:\n" + exc) from None
+            exc = ''.join(format_exception(type(e), e, e.__traceback__))
+            raise ReqRespServerException("An error occured while executing the function:\n" + exc) from None
 
     async def handle_single_request(self, raw: Optional[Message]):
         if raw is None:
