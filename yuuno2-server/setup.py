@@ -25,10 +25,11 @@ with open('HISTORY.rst', encoding="utf-8") as history_file:
     history = history_file.read()
 
 requirements = [
+    "click"
 ]
 
 test_requirements = [
-    "aiounittest", "async_timeout"
+    "aiounittest"
 ]
 extras_requires = {
     "vapoursynth": ["vapoursynth"]
@@ -38,9 +39,9 @@ setup_requires = [
 ]
 
 setup(
-    name='yuuno-core',
+    name='yuuno-server',
     version='2.0',
-    description="Yuuno-Core - Extract frames from videos.",
+    description="Yuuno-Server - Remote encoding server.",
     long_description=readme + '\n\n' + history,
     author="stuxcrystal",
     author_email='stuxcrystal@encode.moe',
