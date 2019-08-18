@@ -2,7 +2,7 @@ from asyncio import sleep, ensure_future, CancelledError, TimeoutError
 from typing import NoReturn, Optional, Any
 
 from aiounittest import AsyncTestCase
-from yuuno2.asyncutils import dynamic_timeout, race_first
+from yuuno2.asyncutils import dynamic_timeout
 
 
 async def t_sleep(time: int, result: Any = None, exc: Optional[Exception] = None) -> NoReturn:

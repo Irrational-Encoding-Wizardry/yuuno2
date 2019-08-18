@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "6e28b6912a48a345e09f085911575ad4c8229aecd70bd77c5f5337cde9250407"
+            "sha256": "c2ab81c0d56448446aee24582e2d830b2258d635aa52fd858c8597be8868da24"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -22,6 +22,15 @@
                 "sha256:8ea2d3ce97850f31e4a08b0e2b5e6c34997d7216a9d2c98e0f3978630d4da69a"
             ],
             "version": "==3.1.1"
+        },
+        "vapoursynth": {
+            "hashes": [
+                "sha256:2fc8947e1ba538550ddfbb3db5cf44bdf8c4878dfe71749d2c0b9bc2d9eb5d20",
+                "sha256:659bcab0fa590a830cd63b9e6edb3e4d36eb65b68232e127d112d1ef22cdd76c",
+                "sha256:ac1dd9e66623939c2ffc7b70284b15eadadd654fb76243dd187fb3eb9a81b3c2"
+            ],
+            "index": "pypi",
+            "version": "==47.2"
         },
         "yuuno-core": {
             "editable": true,

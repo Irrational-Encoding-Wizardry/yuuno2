@@ -1,4 +1,4 @@
-from typing import NoReturn, Mapping, Any, Optional
+from typing import NoReturn, Any, Optional
 
 from yuuno2.resource_manager import register
 from yuuno2.script import ScriptProvider, Script

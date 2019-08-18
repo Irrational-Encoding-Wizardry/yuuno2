@@ -1,4 +1,4 @@
-from asyncio import Queue, Event, shield, get_running_loop, CancelledError, ALL_COMPLETED, wait, ensure_future
+from asyncio import Queue, Event, ALL_COMPLETED, wait, ensure_future
 from typing import NoReturn, Optional, Tuple, Awaitable
 
 from yuuno2.asyncutils import dynamic_timeout

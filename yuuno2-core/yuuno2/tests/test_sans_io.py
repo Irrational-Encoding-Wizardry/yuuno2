@@ -1,4 +1,3 @@
-from aiounittest import AsyncTestCase
 from unittest import TestCase
 
 from yuuno2.sans_io import *

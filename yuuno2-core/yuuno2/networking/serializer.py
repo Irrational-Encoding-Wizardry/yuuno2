@@ -3,7 +3,7 @@ import array
 import itertools
 import sys
 from abc import abstractmethod, ABC
-from asyncio import Queue, QueueFull
+from asyncio import Queue
 from typing import NoReturn, Optional
 
 from yuuno2.networking.base import Message, MessageOutputStream, MessageInputStream

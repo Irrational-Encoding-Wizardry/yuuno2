@@ -2,7 +2,7 @@ from abc import ABC, abstractmethod
 from asyncio import gather
 from typing import NamedTuple, List, Mapping, Union, Optional, NoReturn
 
-from yuuno2.resource_manager import Resource, NonAbcResource, register
+from yuuno2.resource_manager import Resource, register
 
 AnyJSON = Union[str, int, float, bool, None, Mapping[str, 'AnyJSON'], List['AnyJSON']]
 JSON = Mapping[str, AnyJSON]

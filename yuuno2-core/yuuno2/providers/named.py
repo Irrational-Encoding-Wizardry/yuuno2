@@ -1,4 +1,4 @@
-from typing import NoReturn, Mapping, Any, Optional, MutableMapping
+from typing import NoReturn, Any, Optional, MutableMapping
 
 from yuuno2.resource_manager import register, on_release
 from yuuno2.script import ScriptProvider, Script

@@ -1,12 +1,11 @@
-from asyncio import Lock, Event, gather
+from asyncio import Lock, Event
 from typing import Optional, MutableMapping, NoReturn
 
 from yuuno2.resource_manager import register, Resource
 
-from yuuno2.networking.base import Connection, Message, MessageOutputStream, ConnectionInputStream, \
-    ConnectionOutputStream, MessageInputStream
+from yuuno2.networking.base import Connection, Message, MessageOutputStream, MessageInputStream
 from yuuno2.networking.reader import ReaderTask
-from yuuno2.networking.pipe import PipeOutputStream, PipeInputStream, pipe
+from yuuno2.networking.pipe import pipe
 
 
 class ChannelOutputStream(MessageOutputStream):

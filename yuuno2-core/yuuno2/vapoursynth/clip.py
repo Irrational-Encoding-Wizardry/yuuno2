@@ -1,5 +1,5 @@
 import weakref
-from asyncio import Event, ensure_future, wrap_future, gather
+from asyncio import ensure_future, wrap_future, gather
 from typing import NoReturn, Mapping, Union, Optional, Awaitable
 
 import vapoursynth as vs

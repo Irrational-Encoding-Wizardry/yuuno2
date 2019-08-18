@@ -1,8 +1,8 @@
 from abc import ABC, abstractmethod
-from typing import NoReturn, Mapping, Type, Tuple, Callable, Dict, List
+from typing import NoReturn, Type, Tuple, Callable, Dict, List
 
 from yuuno2.networking.base import Connection
-from yuuno2.networking.multiplex import Multiplexer, Channel
+from yuuno2.networking.multiplex import Multiplexer
 from yuuno2.networking.reqresp import ReqRespClient, ReqRespServer
 from yuuno2.resource_manager import Resource, register
 from yuuno2.typings import ConfigTypes
