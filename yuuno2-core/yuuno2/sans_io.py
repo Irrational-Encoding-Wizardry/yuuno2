@@ -104,6 +104,9 @@ class Buffer(object):
 
     def feed(self, data: Optional[bytes]) -> NoReturn:
         if self._closed:
+            if data is None:
+                return
+
             raise IOError("Feeding closed buffer.")
 
         if data is None:
@@ -199,14 +202,15 @@ class Consumer(Generic[A]):
 
     def feed(self, data: Optional[bytes]) -> Iterator[A]:
         # Ignore closed protocols.
-        if self.closed:
-            raise IOError("Protocol has finished.")
-
-        # Feed the buffer.
-        if data is None:
-            self.buffer.close()
+        if self.closing:
+            if data:
+                raise IOError("Protocol has finished.")
         else:
-            self.buffer.feed(data)
+            # Feed the buffer.
+            if data is None:
+                self.buffer.close()
+            else:
+                self.buffer.feed(data)
 
         return self._execute()
 
@@ -297,6 +301,6 @@ async def wait(length: int = 1) -> None:
 async def read_exactly(length: int = 1) -> bytes:
     await wait(length)
     data = await read(length)
-    if len(data) < length:
+    if data is None or len(data) < length:
         raise ConnectionResetError
     return data

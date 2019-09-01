@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from asyncio import Protocol, BaseTransport, get_running_loop, sleep
+from asyncio import Protocol, BaseTransport, get_running_loop, sleep, BaseProtocol
 from asyncio import Queue, Event, Transport, ensure_future, TimeoutError
 from typing import Optional, NoReturn
 from weakref import WeakKeyDictionary
@@ -61,14 +61,14 @@ class ResourceDescriptor(object):
                 remove_callback(old, self._unset_by_expiry)
 
 
-class YuunoProtocol(Protocol):
+class YuunoBaseProtocol(BaseProtocol):
     QUEUE_MAXSIZE = 30
 
     _ingress: Optional[MessageInputStream] = ResourceDescriptor()
     _egress: Optional[MessageOutputStream] = ResourceDescriptor()
 
     def __init__(self):
-        self.transport: Optional[Transport] = None
+        self.transport: Optional[BaseTransport] = None
         self.protocol = bytes_protocol()
         self.rqueue = Queue()
 
@@ -86,9 +86,17 @@ class YuunoProtocol(Protocol):
             return
 
         try:
-            return await dynamic_timeout(self.rqueue.get(), self._closed.wait())
+            message = await dynamic_timeout(self.rqueue.get(), self._closed.wait())
         except TimeoutError:
             return None
+        else:
+            if self.rqueue.qsize() < self.QUEUE_MAXSIZE:
+                self.after_message_read()
+
+            return message
+
+    def after_message_read(self):
+        pass
 
     async def write_message(self, message: Message):
         if self._closed.is_set():
@@ -99,14 +107,7 @@ class YuunoProtocol(Protocol):
         except TimeoutError:
             return
 
-        self.transport.write(ByteOutputStream.write_message(message))
-
-    async def close(self):
-        self.transport.close()
-
-    def connection_made(self, transport: BaseTransport) -> None:
-        self.transport = transport
-        self._transport_gate.set()
+        self.write_message_data(ByteOutputStream.write_message(message))
 
     def _parse_until(self, maxsize: Optional[int] = QUEUE_MAXSIZE):
         if maxsize is not None and self.rqueue.qsize()>=maxsize:
@@ -119,27 +120,66 @@ class YuunoProtocol(Protocol):
 
         return True
 
-    def data_received(self, data: bytes) -> None:
-        self.protocol.feed(data)
-        if not self._parse_until(maxsize=self.QUEUE_MAXSIZE):
-            self.transport.resume_reading()
+    def write_message_data(self, data: bytes):
+        raise NotImplementedError
 
-    def pause_writing(self) -> None:
+    def feed(self, data: Optional[bytes]) -> bool:
+        self.protocol.feed(data)
+        return self._parse_until(self.QUEUE_MAXSIZE)
+
+    def stop_writing(self):
         self._transport_gate.clear()
 
-    def resume_writing(self) -> None:
+    def continue_writing(self):
         self._transport_gate.set()
 
-    def connection_lost(self, exc: Optional[Exception]) -> None:
+    def finishing(self):
+        if self._closed.set():
+            return
+
         self._transport_gate.clear()
         self._closed.set()
         ensure_future(self._close(), loop=get_running_loop())
-        self._parse_until(None)
+        self.feed(None)
+
+    async def close(self):
+        self.transport.close()
+
+
+class YuunoProtocol(Protocol, YuunoBaseProtocol):
+    transport: Transport
+
+    def write_message_data(self, message):
+        self.transport.write(message)
+
+    def connection_made(self, transport: BaseTransport) -> None:
+        # noinspection PyTypeChecker
+        self.transport = transport
+        self.continue_writing()
+
+    def after_message_read(self):
+        self.transport.resume_reading()
+
+    def feed(self, data: Optional[bytes]):
+        if not super().feed(data):
+            self.transport.pause_reading()
+
+    def data_received(self, data: bytes) -> None:
+        self.feed(data)
+
+    def pause_writing(self) -> None:
+        self.stop_writing()
+
+    def resume_writing(self) -> None:
+        self.continue_writing()
+
+    def connection_lost(self, exc: Optional[Exception]) -> None:
+        self.finishing()
 
 
 class ConnectionInputStream(MessageInputStream):
 
-    def __init__(self, protocol: YuunoProtocol):
+    def __init__(self, protocol: YuunoBaseProtocol):
         self.protocol = protocol
 
     async def read(self) -> Optional[Message]:
@@ -154,7 +194,7 @@ class ConnectionInputStream(MessageInputStream):
 
 class ConnectionOutputStream(MessageOutputStream):
 
-    def __init__(self, protocol: YuunoProtocol):
+    def __init__(self, protocol: YuunoBaseProtocol):
         self.protocol = protocol
 
     async def write(self, message: Message) -> NoReturn:

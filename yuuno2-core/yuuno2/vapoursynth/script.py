@@ -91,7 +91,7 @@ class VapourSynthScript(Script):
         return (await super().ensure_acquired())
 
 
-def VapourSynthScriptManager():
+def VapourSynthScriptProvider():
     return SingleScriptProvider(
         VapourSynthScript(vpy_current_environment()),
     )

@@ -79,7 +79,7 @@ class ByteOutputStream(MessageOutputStream, ABC):
         await self.send(self.write_message(message))
 
 
-class ByteInputStream(MessageInputStream):
+class ByteInputStream(MessageInputStream, ABC):
 
     def __init__(self, maxsize=50):
         self.protocol: Consumer[Message] = bytes_protocol()
@@ -111,6 +111,9 @@ class ByteInputStream(MessageInputStream):
             self.queue_active()
 
     async def read(self) -> Optional[Message]:
+        if self.queue.empty():
+            await self.ensure_acquired()
+
         read = (await self.queue.get())
         self.continue_running()
         return read

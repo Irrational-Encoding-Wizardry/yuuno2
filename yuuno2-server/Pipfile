@@ -4,10 +4,14 @@ url = "https://pypi.org/simple"
 verify_ssl = true
 
 [dev-packages]
+vapoursynth = "*"
 
 [packages]
 yuuno-core = {editable = true,path = "./../yuuno2-core"}
 click = "*"
+e1839a8 = {editable = true,path = "."}
+yuuno-server = {editable = true,path = "."}
+vapoursynth-portable = "*"
 
 [requires]
 python_version = "3.7"

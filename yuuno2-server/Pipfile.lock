@@ -1,7 +1,7 @@
 {
     "_meta": {
         "hash": {
-            "sha256": "c0e84832b9f8320499de0ebf4471a7a24d02d00aff34e066988efa84a6fafcb4"
+            "sha256": "87cd4bf4651c121aa04730402a16f47c1e960d7f5378b76c07882c05d1d2f90b"
         },
         "pipfile-spec": 6,
         "requires": {
@@ -16,6 +16,13 @@
         ]
     },
     "default": {
+        "aiorun": {
+            "hashes": [
+                "sha256:4b831cc6fcae3275fbe24fd9ae4647f87ceb12171dfcfe0d79c984814bbaedb1",
+                "sha256:5da1ebc219b2c3c52bd92ffbe412f1debc936836a0ea048a62835b7be2f60436"
+            ],
+            "version": "==2019.4.1"
+        },
         "click": {
             "hashes": [
                 "sha256:2335065e6395b9e67ca716de5f7526736bfa6ceead690adf616d925bdc622b13",
@@ -24,10 +31,43 @@
             "index": "pypi",
             "version": "==7.0"
         },
+        "e1839a8": {
+            "editable": true,
+            "path": "."
+        },
+        "vapoursynth": {
+            "hashes": [
+                "sha256:2fc8947e1ba538550ddfbb3db5cf44bdf8c4878dfe71749d2c0b9bc2d9eb5d20",
+                "sha256:659bcab0fa590a830cd63b9e6edb3e4d36eb65b68232e127d112d1ef22cdd76c",
+                "sha256:ac1dd9e66623939c2ffc7b70284b15eadadd654fb76243dd187fb3eb9a81b3c2"
+            ],
+            "version": "==47.2"
+        },
+        "vapoursynth-portable": {
+            "hashes": [
+                "sha256:85910535ec1b57bff8ec5c005ae863e47875d5b7a8b29e4e54afd68912d8962b",
+                "sha256:d9ae05fccd9943417c78003d8dfbda41585ad0c46dab533610dbdf18e24db634"
+            ],
+            "index": "pypi",
+            "version": "==47.2"
+        },
         "yuuno-core": {
             "editable": true,
             "path": "./../yuuno2-core"
+        },
+        "yuuno-server": {
+            "editable": true,
+            "path": "."
         }
     },
-    "develop": {}
+    "develop": {
+        "vapoursynth": {
+            "hashes": [
+                "sha256:2fc8947e1ba538550ddfbb3db5cf44bdf8c4878dfe71749d2c0b9bc2d9eb5d20",
+                "sha256:659bcab0fa590a830cd63b9e6edb3e4d36eb65b68232e127d112d1ef22cdd76c",
+                "sha256:ac1dd9e66623939c2ffc7b70284b15eadadd654fb76243dd187fb3eb9a81b3c2"
+            ],
+            "version": "==47.2"
+        }
+    }
 }
