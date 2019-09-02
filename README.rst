@@ -13,16 +13,6 @@ Yuuno
       \_/\__,_|\__,_|_| |_|\___/
 
 
-
-
-
-.. image:: https://img.shields.io/pypi/v/yuuno.svg
-        :target: https://pypi.python.org/pypi/yuuno
-
-.. image:: https://circleci.com/gh/Irrational-Encoding-Wizardry/yuuno-core.svg?style=svg
-    :target: https://circleci.com/gh/Irrational-Encoding-Wizardry/yuuno-core
-
-
 Yuuno = Jupyter + VapourSynth
 
 * Free software: MIT license
