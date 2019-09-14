@@ -3,7 +3,7 @@ package dev.yuuno.networking.io;
 import dev.yuuno.networking.Message;
 import dev.yuuno.networking.MessageInputStream;
 import dev.yuuno.networking.utils.IOUtils;
-import dev.yuuno.networking.utils.StreamUtils;
+import org.json.JSONArray;
 import org.json.JSONObject;
 
 import javax.annotation.Nonnull;
@@ -12,10 +12,12 @@ import java.io.DataInputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.nio.charset.StandardCharsets;
-import java.util.ArrayList;
-import java.util.LinkedList;
-import java.util.stream.IntStream;
+import java.util.*;
 
+/**
+ * A RawMessageInputStream-object wraps an input stream
+ * and deserializes its messages.
+ */
 public class RawMessageInputStream implements MessageInputStream {
 
     @Nonnull
@@ -38,6 +40,34 @@ public class RawMessageInputStream implements MessageInputStream {
         return data;
     }
 
+    private Object fromJSON(@Nullable Object object) {
+        if (object instanceof JSONObject)
+            return fromJSONObject((JSONObject) object);
+        else if (object instanceof JSONArray)
+            return fromJSONArray((JSONArray) object);
+        else
+            return fromJSONScalar(object);
+    }
+
+    private Object fromJSONScalar(@Nullable Object object) {
+        if (object == JSONObject.NULL) return null;
+        return object;
+    }
+
+    private List<Object> fromJSONArray(JSONArray array) {
+        ArrayList<Object> lst = new ArrayList<>(array.length());
+        for (Object p : array)
+            lst.add(fromJSON(p));
+        return lst;
+    }
+
+    private Map<String, Object> fromJSONObject(JSONObject object) {
+        HashMap<String, Object> map = new HashMap<>();
+        for (String k : object.keySet())
+            map.put(k, fromJSON(object.get(k)));
+        return map;
+    }
+
     @Nullable
     @Override
     public Message readMessage() throws IOException {
@@ -50,7 +80,7 @@ public class RawMessageInputStream implements MessageInputStream {
             if (rawText.length > 0)
                 text = new JSONObject(new String(rawText, StandardCharsets.UTF_8));
 
-            return new Message(text, packet.toArray(new byte[0][]));
+            return new Message(text==null?null:fromJSONObject(text), packet.toArray(new byte[0][]));
         }
     }
 

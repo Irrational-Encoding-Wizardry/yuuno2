@@ -1,39 +1,48 @@
 package dev.yuuno.networking;
 
-import org.json.JSONObject;
-
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Map;
 import java.util.Objects;
 
+/**
+ * A Message object represent a bit of data that is transmitted to or from
+ * a Yuuno-Instance.
+ *
+ * A message contains a text-part and an arbitrary amount of binary buffers.
+ *
+ * The text part must always be representable by a JSONObject; however the underlying transports
+ * may choose to serialize it in a different format.
+ */
 public final class Message {
 
-    @Nullable
-    private JSONObject text;
+    @Nonnull
+    private Map<String, Object> text;
 
     @Nonnull
     private byte[][] blocks;
 
-    public Message(@Nullable JSONObject text, @Nonnull  byte[][] blocks) {
+    public Message(@Nonnull Map<String, Object> text, @Nonnull  byte[][] blocks) {
         this.text = text;
         this.blocks = blocks;
     }
 
-    public Message(@Nullable JSONObject text) {
+    public Message(@Nonnull Map<String, Object> text) {
         this(text, new byte[][]{});
     }
 
     public Message() {
-        this(null);
+        this(Collections.emptyMap());
     }
 
-    @Nullable
-    public JSONObject getText() {
+    @Nonnull
+    public Map<String, Object> getText() {
         return text;
     }
 
-    public void setText(@Nullable JSONObject text) {
+    public void setText(@Nonnull Map<String, Object> text) {
         this.text = text;
     }
 
@@ -52,13 +61,13 @@ public final class Message {
         if (o == null || getClass() != o.getClass()) return false;
         Message message = (Message) o;
         return Objects.equals(text, message.text) &&
-                Arrays.equals(blocks, message.blocks);
+                Arrays.deepEquals(blocks, message.blocks);
     }
 
     @Override
     public int hashCode() {
         int result = Objects.hash(text);
-        result = 31 * result + Arrays.hashCode(blocks);
+        result = 31 * result + Arrays.deepHashCode(blocks);
         return result;
     }
 
@@ -66,7 +75,7 @@ public final class Message {
     public String toString() {
         return "Message{" +
                 "text=" + text +
-                ", blocks=" + Arrays.toString(blocks) +
+                ", blocks=" + Arrays.deepToString(blocks) +
                 '}';
     }
 }
