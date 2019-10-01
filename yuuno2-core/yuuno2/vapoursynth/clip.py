@@ -34,14 +34,14 @@ from yuuno2.script import Script
 ConfigMapping = Mapping[str, ConfigTypes]
 _config_cache = weakref.WeakKeyDictionary()
 DEFAULT_CONFIGURATION = {
-    'resizer':             'resize.Spline36',
+    'chroma_resizer':      'resize.Spline36',
     'override_yuv_matrix': False,
     'default_yuv_matrix':  '702',
 }
 
 
 async def get_configuration(script: Script) -> ConfigMapping:
-    config = [[k, ensure_future(script.get_config("yuuno2.vs." + k, d))] for k, d in DEFAULT_CONFIGURATION.items()]
+    config = [[k, ensure_future(script.get_config("vs." + k, d))] for k, d in DEFAULT_CONFIGURATION.items()]
     await gather(*(d for k, d in config))
     return {k: (d.result()) for k, d in config}
 
@@ -177,8 +177,8 @@ class VapourSynthFrame(Frame):
         if format == self.native_format:
             return self._raw_node
 
-        namespace, filter = config['resizer'].split(".")
-        config['resizer'] = getattr(getattr(core, namespace), filter)
+        namespace, filter = config['chroma_resizer'].split(".", 2)
+        config['chroma_resizer'] = getattr(getattr(core, namespace), filter)
 
         if not format.planar:
             return self._convert_compat(format, config)
@@ -192,10 +192,10 @@ class VapourSynthFrame(Frame):
     def _convert_compat(self, format: RawFormat, config) -> VideoNode:
         if format == FORMAT_COMPATBGR32:
             clip = self._convert_rgb(format, config)
-            return config['resizer'](clip, format=vs.COMPATBGR32)
+            return config['chroma_resizer'](clip, format=vs.COMPATBGR32)
         else:
             clip = self._convert_yuv(format, config)
-            return config['resizer'](clip, format=vs.COMPATYUY2)
+            return config['chroma_resizer'](clip, format=vs.COMPATYUY2)
 
     def _convert_rgb(self, format: RawFormat, config) -> VideoNode:
         target = core.get_format(vs.RGB24).replace(

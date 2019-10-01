@@ -151,3 +151,4 @@ typings/
 ## Visual Studio Code
 
 .vscode/
+.gradle/

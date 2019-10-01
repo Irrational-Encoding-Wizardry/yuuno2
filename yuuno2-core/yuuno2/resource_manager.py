@@ -93,6 +93,8 @@ class Resource(ABC):
             except Exception as e_sub:
                 e_sub.__context__ = e
                 raise e_sub
+            else:
+                raise
 
     async def release(self, *, force=True) -> NoReturn:
         """
@@ -149,12 +151,21 @@ class Resource(ABC):
 
     def __del__(self):
         if self.acquired:
-            import warnings
-            warnings.warn(
-                f"Resource {self!r} was never released. Did you do this by mistake?",
-                ResourceWarning,
-                stacklevel=2
-            )
+            try:
+                import warnings
+                warnings.warn(
+                    f"Resource {self!r} was never released. Did you do this by mistake?",
+                    ResourceWarning,
+                    stacklevel=2
+                )
+
+            except ImportError:
+                # Fix for bug during python shutdown:
+                # > During python shutdown, you cannot correctly import modules anymore.
+                #
+                # We can safely assume that warnings is imported, so we skip the warning.
+                pass
+
             _mark_incorrectly_released(self)
             _call_release_cbs(self)
 

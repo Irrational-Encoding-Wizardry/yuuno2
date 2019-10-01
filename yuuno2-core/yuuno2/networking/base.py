@@ -62,7 +62,6 @@ class Connection(Resource):
         register(self.input, self)
         register(self.output, self)
 
-
     async def _release(self):
         await gather(
             self.input.release(force=False),

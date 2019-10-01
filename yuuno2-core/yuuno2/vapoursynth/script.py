@@ -64,7 +64,7 @@ class VapourSynthScript(Script):
     async def run(self, code: Union[bytes, str]) -> Any:
         await self.ensure_acquired()
         with self.inside():
-            exec(code)
+            exec(code, self.module.__dict__, self.module.__dict__)
 
     async def retrieve_clips(self) -> Mapping[str, Clip]:
         await self.ensure_acquired()
@@ -76,9 +76,13 @@ class VapourSynthScript(Script):
         with self.environment:
             core: Core = get_core()
             self.config.update({
-                'vs.core.add_cache': core.add_cache,
-                'vs.core.num_threads': core.num_threads,
-                'vs.core.max_cache_size': core.max_cache_size,
+                'vs.core.add_cache':       core.add_cache,
+                'vs.core.num_threads':     core.num_threads,
+                'vs.core.max_cache_size':  core.max_cache_size,
+
+                'vs.chroma_resizer':       'resize.Spline36',
+                'vs.override_yuv_matrix':  False,
+                'vs.default_yuv_matrix':   '702',
             })
 
     async def _release(self) -> NoReturn:
@@ -88,7 +92,7 @@ class VapourSynthScript(Script):
         if not self.environment.alive:
             await self.release()
             raise EnvironmentError("Environment has been destroyed.")
-        return (await super().ensure_acquired())
+        return await super().ensure_acquired()
 
 
 def VapourSynthScriptProvider():
