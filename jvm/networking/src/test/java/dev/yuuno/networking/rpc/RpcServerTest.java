@@ -39,7 +39,7 @@ public class RpcServerTest {
         return new Message(data, message.getBlocks());
     }
 
-    @Test
+    @Test(timeout = 1000)
     public void rpcMissingId() throws Exception {
         Pair<Connection, Connection> connection = Pipe.bidirectional();
         Connection tail = connection.getTail();
@@ -52,7 +52,7 @@ public class RpcServerTest {
         }
     }
 
-    @Test
+    @Test(timeout = 1000)
     public void rpcUnmarkedMethod() throws Exception {
         Pair<Connection, Connection> connection = Pipe.bidirectional();
         Connection tail = connection.getTail();
@@ -65,7 +65,7 @@ public class RpcServerTest {
         }
     }
 
-    @Test
+    @Test(timeout = 1000)
     public void rpcFail() throws Exception {
         Pair<Connection, Connection> connection = Pipe.bidirectional();
         Connection tail = connection.getTail();
@@ -80,7 +80,7 @@ public class RpcServerTest {
         }
     }
 
-    @Test
+    @Test(timeout = 1000)
     public void rpcSucceed() throws Exception {
         Pair<Connection, Connection> connection = Pipe.bidirectional();
         Connection tail = connection.getTail();

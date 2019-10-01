@@ -61,6 +61,14 @@ public class Pipe implements Connection {
         }
     }
 
+    public boolean isEmpty() {
+        return this.messageQueue.size() == 0;
+    }
+
+    public boolean isClosed() {
+        return this.closed.get();
+    }
+
     @Override
     public void close() throws Exception {
         if (this.closed.get()) return;

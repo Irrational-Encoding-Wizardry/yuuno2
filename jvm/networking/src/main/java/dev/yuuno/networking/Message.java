@@ -55,6 +55,19 @@ public final class Message {
         this.blocks = blocks;
     }
 
+    @SuppressWarnings("unchecked")
+    public static <T> T extract(Map<String, Object> map, String key, Class<T> type, T def) {
+        if (!map.containsKey(key)) return def;
+        Object value = map.get(key);
+        if (value == null) return def;
+        if (!type.isInstance(value)) return def;
+        return (T)value;
+    }
+
+    public static <T> T extract(Map<String, Object> map, String key, Class<T> type) {
+        return extract(map, key, type, null);
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;

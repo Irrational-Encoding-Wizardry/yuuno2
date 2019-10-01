@@ -18,13 +18,14 @@ import java.util.concurrent.atomic.AtomicInteger;
 
 public class RpcClient extends Thread implements AutoCloseable {
 
-    private static final Method HASH_CODE_METHOD = getObjectMethod("hashCode");
-    private static final Method EQUALS_METHOD = getObjectMethod("equals", Object.class);
-    private static final Method TO_STRING_METHOD = getObjectMethod("toString");
+    private static final Method HASH_CODE_METHOD = getMethod(Object.class, "hashCode");
+    private static final Method EQUALS_METHOD = getMethod(Object.class, "equals", Object.class);
+    private static final Method TO_STRING_METHOD = getMethod(Object.class, "toString");
+    private static final Method CLOSE_METHOD = getMethod(AutoCloseable.class, "close");
 
-    private static Method getObjectMethod(String name, Class<?>... params) {
+    private static Method getMethod(Class<?> src, String name, Class<?>... params) {
         try {
-            return Object.class.getMethod(name, params);
+            return src.getMethod(name, params);
         } catch (NoSuchMethodException e) {
             e.printStackTrace();
             return null;
@@ -53,12 +54,6 @@ public class RpcClient extends Thread implements AutoCloseable {
         return client.makeProxy(cls, t, tu);
     }
 
-    public void run() {
-        while (!closed.get()) {
-            runOnce();
-        }
-    }
-
     private void deliver(int id, Message message) {
         if (!waits.containsKey(id)) return;
         MessageFuture future = waits.remove(id);
@@ -71,6 +66,11 @@ public class RpcClient extends Thread implements AutoCloseable {
         fakeResult.put("type", "error");
         fakeResult.put("message", message);
         deliver(id, new Message(fakeResult));
+    }
+
+    public void run() {
+        while (!this.closed.get())
+            runOnce();
     }
 
     private void runOnce() {
@@ -147,7 +147,7 @@ public class RpcClient extends Thread implements AutoCloseable {
     @SuppressWarnings("unchecked")
     public <T extends ExportedProcedures> T makeProxy(@Nonnull Class<T> procs, long t, @Nonnull  TimeUnit tu) {
         return (T) Proxy.newProxyInstance(procs.getClassLoader(), new Class<?>[]{procs, AutoCloseable.class}, (object, method, params) -> {
-            if (method.equals(AutoCloseable.class.getDeclaredMethod("close"))) {
+            if (method.equals(CLOSE_METHOD)) {
                 close();
                 return null;
             } else if (method.equals(EQUALS_METHOD)) {
