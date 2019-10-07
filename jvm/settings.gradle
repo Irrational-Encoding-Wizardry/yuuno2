@@ -1,3 +1,4 @@
 rootProject.name = 'jvm'
 include 'networking'
+include 'client'
 
