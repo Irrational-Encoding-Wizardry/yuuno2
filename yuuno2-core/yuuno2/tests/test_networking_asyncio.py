@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import socket
-from asyncio import get_running_loop, open_connection, wait_for
+from asyncio import get_running_loop, open_connection, wait_for, sleep
 
 from aiounittest import AsyncTestCase
 
@@ -81,3 +81,6 @@ class TestAsyncioProtocol(AsyncTestCase):
         finally:
             rs_w.close()
             wt.close()
+
+        # Make sure the stream-reader had time get properly closed.
+        await sleep(0.1)

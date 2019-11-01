@@ -26,12 +26,15 @@ from yuuno2.networking.pipe import pipe
 from yuuno2.networking.reader import ReaderTask
 
 
+async def noop(*_, **__): return None
+
+
 class TestNetworkingReader(AsyncTestCase):
 
     async def test_run_after_release(self):
         task: Optional[Task] = None
         pipe_r, pipe_w = pipe()
-        reader = ReaderTask(pipe_r, coroutine(lambda m: None))
+        reader = ReaderTask(pipe_r, noop)
         async with reader:
             task = reader._task
             self.assertIsNotNone(task)

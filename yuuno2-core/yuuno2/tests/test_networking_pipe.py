@@ -62,7 +62,7 @@ class TestPipeNetworking(AsyncTestCase):
 
         async with pc:
             task = get_running_loop().create_task(_concurrent())
-            await sleep(1)
+            await sleep(1.1)
             await pc.write(m)
             await task
 

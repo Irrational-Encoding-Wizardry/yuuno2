@@ -94,9 +94,12 @@ class FileInputStream(ByteInputStream):
 
             target = wintypes.HANDLE(-1)
 
-            kernel32.DuplicateHandle(current_process, current_thread, current_process, ctypes.byref(target), 0, 0, 2)
+            if not kernel32.DuplicateHandle(current_process, current_thread, current_process, ctypes.byref(target), 0, 0, 2):
+                raise IOError(kernel32.GetLastError())
 
             _cancel_token = [target.value, False]
+            if _cancel_token[0] is None:
+                raise IOError("Failed to get thread-handle...")
             self._cancel_current_io_op = _cancel_token
 
             try:
