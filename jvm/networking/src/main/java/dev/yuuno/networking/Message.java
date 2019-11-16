@@ -2,10 +2,7 @@ package dev.yuuno.networking;
 
 import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
-import java.util.Arrays;
-import java.util.Collections;
-import java.util.Map;
-import java.util.Objects;
+import java.util.*;
 
 /**
  * A Message object represent a bit of data that is transmitted to or from
@@ -19,7 +16,7 @@ import java.util.Objects;
 public final class Message {
 
     @Nonnull
-    private Map<String, Object> text;
+    private Object text;
 
     @Nonnull
     private byte[][] blocks;
@@ -27,6 +24,15 @@ public final class Message {
     public Message(@Nonnull Map<String, Object> text, @Nonnull  byte[][] blocks) {
         this.text = text;
         this.blocks = blocks;
+    }
+
+    public Message(@Nonnull List<Object> text, @Nonnull byte[][] blocks) {
+        this.text = text;
+        this.blocks = blocks;
+    }
+
+    public Message(@Nonnull List<Object> text) {
+        this(text, new byte[][]{});
     }
 
     public Message(@Nonnull Map<String, Object> text) {
@@ -39,7 +45,27 @@ public final class Message {
 
     @Nonnull
     public Map<String, Object> getText() {
-        return text;
+        if (!(text instanceof Map)) {
+            HashMap<String, Object> wrapped = new HashMap<>();
+            wrapped.put("", text);
+            return wrapped;
+        };
+
+        return (Map<String, Object>)text;
+    }
+
+    @Nullable
+    @SuppressWarnings("unchecked")
+    public List<Object> getTextAsList() {
+        if (!(this.text instanceof List))
+            return null;
+
+        return (List<Object>)text;
+
+    }
+
+    public void setText(@Nonnull List<Object> values) {
+        this.text = values;
     }
 
     public void setText(@Nonnull Map<String, Object> text) {

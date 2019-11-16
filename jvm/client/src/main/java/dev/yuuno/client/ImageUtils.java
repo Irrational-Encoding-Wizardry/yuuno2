@@ -3,9 +3,7 @@ package dev.yuuno.client;
 import java.awt.*;
 import java.awt.image.BufferedImage;
 import java.awt.image.DataBufferByte;
-import java.awt.image.DataBufferInt;
 import java.awt.image.Raster;
-import java.util.Arrays;
 
 public final class ImageUtils {
 

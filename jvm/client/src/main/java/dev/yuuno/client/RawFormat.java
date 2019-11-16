@@ -1,22 +1,26 @@
 package dev.yuuno.client;
 
-import java.awt.image.SampleModel;
+import java.awt.*;
+import java.awt.color.ColorSpace;
+import java.awt.image.*;
 import java.util.Arrays;
 import java.util.List;
 import java.util.Objects;
 
+import static dev.yuuno.client.RawFormat.ColorFamily.*;
+
 public class RawFormat implements MessageSerializable {
 
-    public static final RawFormat GRAY8 = new RawFormat(8, 1, ColorFamily.GREY, SampleType.INTEGER);
-    public static final RawFormat RGB24 = new RawFormat(8, 3, ColorFamily.RGB, SampleType.INTEGER);
-    public static final RawFormat RGBA32 = new RawFormat(8, 4, ColorFamily.RGB, SampleType.INTEGER);
+    public static final RawFormat GRAY8 = new RawFormat(8, 1, GREY, SampleType.INTEGER);
+    public static final RawFormat RGB24 = new RawFormat(8, 3, RGB, SampleType.INTEGER);
+    public static final RawFormat RGBA32 = new RawFormat(8, 4, RGB, SampleType.INTEGER);
 
-    public enum SampleType {
+    public static enum SampleType {
         INTEGER,
         FLOAT
     }
 
-    public enum ColorFamily {
+    public static enum ColorFamily {
         GREY,
         RGB,
         YUV
@@ -103,8 +107,12 @@ public class RawFormat implements MessageSerializable {
 
     public int getStride(int plane, Size size) {
         int stride = getPlaneDimensions(plane, size).getWidth();
+        stride *= this.getBytesPerSample();
         if (!this.packed)
-            stride += stride%4;
+            stride *= getNumFields();
+
+        if (stride%4 != 0)
+            stride += (4 - stride%4);
         return stride;
     }
 
@@ -113,14 +121,8 @@ public class RawFormat implements MessageSerializable {
             return this.getBytesPerSample() * this.numFields * size.getWidth() * size.getHeight();
 
         Size planeDimensions = getPlaneDimensions(plane, size);
-
-        int width = planeDimensions.getWidth();
         int height = planeDimensions.getHeight();
-
-        int stride = width * this.getBytesPerSample();
-        if (!this.packed)
-            stride += stride % 4;
-
+        int stride = getStride(plane, size);
         return height*stride;
     }
 
@@ -165,7 +167,7 @@ public class RawFormat implements MessageSerializable {
         return new RawFormat(
                 (int)message.get(0),
                 (int)message.get(1),
-                ColorFamily.values()[(int)message.get(2)],
+                values()[(int)message.get(2)],
                 SampleType.values()[(int)message.get(3)],
                 (int)message.get(4),
                 (int)message.get(5),

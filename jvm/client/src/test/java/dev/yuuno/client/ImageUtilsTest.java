@@ -4,12 +4,13 @@ import org.junit.Test;
 
 import javax.imageio.ImageIO;
 import java.awt.*;
-import java.awt.image.BufferedImage;
-import java.awt.image.DataBufferByte;
-import java.awt.image.Raster;
+import java.awt.color.ColorSpace;
+import java.awt.image.*;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.Arrays;
+import java.util.Collections;
+import java.util.Hashtable;
 
 import static org.junit.Assert.*;
 
@@ -26,11 +27,15 @@ public class ImageUtilsTest {
     }
 
     private static BufferedImage gray8Simple(int width, int height, byte sample) {
-        BufferedImage result = new BufferedImage(width, height, BufferedImage.TYPE_BYTE_GRAY);
-        DataBufferByte dbb = (DataBufferByte)result.getData().getDataBuffer();
-        Arrays.fill(dbb.getData(), sample);
-        System.out.println(result.getRGB(0, 0)&0xFF);
-        return result;
+        byte[] buffer = new byte[width*height];
+        Arrays.fill(buffer, sample);
+
+        ColorSpace cs = ColorSpace.getInstance(ColorSpace.CS_GRAY);
+        ColorModel cm = new ComponentColorModel(cs, new int[]{8}, false, true, Transparency.OPAQUE, DataBuffer.TYPE_BYTE);
+        SampleModel sm = cm.createCompatibleSampleModel(width, height);
+        DataBufferByte dbb = new DataBufferByte(buffer, width*height);
+        WritableRaster wr = Raster.createWritableRaster(sm, dbb, null);
+        return new BufferedImage(cm, wr, false, null);
     }
 
     @Test

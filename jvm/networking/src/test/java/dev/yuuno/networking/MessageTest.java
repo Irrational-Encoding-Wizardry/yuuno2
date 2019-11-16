@@ -38,6 +38,13 @@ public class MessageTest {
     }
 
     @Test
+    public void testArraySupport() {
+        Map<String, Object> v = new Message(Arrays.<Object>asList(1, 2, 3)).getText();
+        assertTrue(v.containsKey(""));
+        assertEquals(Arrays.asList(1,2,3), v.get(""));
+    }
+
+    @Test
     public void testEquals() {
         ///
         // Ensure that values return the correct equality.

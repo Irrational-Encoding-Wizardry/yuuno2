@@ -73,24 +73,24 @@ def extract_plane(buffer: Buffer, offset: int, frame: VideoFrame, planeno: int):
 
 
 FORMAT_COMPATBGR32 = RawFormat(
-    sample_type     = SampleType.INTEGER,
-    family          = ColorFamily.RGB,
-    bits_per_sample = 8,
-    subsampling_h   = 0,
-    subsampling_w   = 0,
-    num_fields      = 4,
-    packed          = True,
-    planar          = False
+    ColorFamily.RGB,
+    ["b", "g", "r", None],
+    False,
+    SampleType.INTEGER,
+    8,
+    4,
+    False,
+    (0, 0)
 )
 FORMAT_COMPATYUY2 = RawFormat(
-    sample_type     = SampleType.INTEGER,
-    family          = ColorFamily.YUV,
-    bits_per_sample = 8,
-    subsampling_h   = 0,
-    subsampling_w   = 1,
-    num_fields      = 3,
-    packed          = True,
-    planar          = False
+    ColorFamily.YUV,
+    ["y", "u", "y", "v"],
+    False,
+    SampleType.INTEGER,
+    8,
+    4,
+    False,
+    (1, 0)
 )
 
 
@@ -132,12 +132,11 @@ class VapourSynthFrame(Frame):
         return RawFormat(
             sample_type=samples,
             family=fam,
-            num_fields=ff.num_planes,
-            subsampling_w=ff.subsampling_w,
-            subsampling_h=ff.subsampling_h,
+            fields=fam.simple_fields,
+            subsampling=(ff.subsampling_w, ff.subsampling_h),
             bits_per_sample=ff.bits_per_sample,
-            packed=False,
-            planar=True
+            planar=True,
+            alpha=False
         )
 
     async def can_render(self, format: RawFormat) -> bool:
@@ -152,9 +151,9 @@ class VapourSynthFrame(Frame):
                 return True
             else:
                 return False
-        elif format.num_fields in (2, 4):
+        elif format.alpha:
             return False
-        elif not format.packed:
+        elif format.alignment != format.bytes_per_sample:
             return False
         else:
             return True
@@ -171,7 +170,14 @@ class VapourSynthFrame(Frame):
             _converted = self._convert(format, config)
             _fut = get_frame_async(_converted, 0)
         frame: VideoFrame = await _fut
-        return extract_plane(buffer, offset, frame, plane)
+
+        # Convert plane indices of planar formats transparently.
+        planename = format.fields[plane]
+        if planename is None:
+            return len(buffer) - offset
+        planeidx = format.family.simple_fields.index(planename)
+
+        return extract_plane(buffer, offset, frame, planeidx)
 
     def _convert(self, format: RawFormat, config) -> VideoNode:
         if format == self.native_format:
@@ -215,9 +221,9 @@ class VapourSynthFrame(Frame):
     def _convert_yuv(self, format: RawFormat, config) -> VideoNode:
         target = core.get_format(vs.YUV444P8).replace(
             bits_per_sample = format.bits_per_sample,
-            subsampling_w   = format.subsampling_w,
-            subsampling_h   = format.subsampling_h,
-            sample_type=(vs.INTEGER if format.sample_type == SampleType.INTEGER else vs.FLOAT)
+            subsampling_w   = format.subsampling[0],
+            subsampling_h   = format.subsampling[1],
+            sample_type     = (vs.INTEGER if format.sample_type == SampleType.INTEGER else vs.FLOAT)
         )
         params = {
             'format': target,
@@ -234,8 +240,8 @@ class VapourSynthFrame(Frame):
 
     def _convert_grey(self, format: RawFormat, config):
         target = core.get_format(vs.GRAY8).replace(
-            bits_per_sample=format.bits_per_sample,
-            sample_type=(vs.INTEGER if format.sample_type == SampleType.INTEGER else vs.FLOAT)
+            bits_per_sample= format.bits_per_sample,
+            sample_type    = (vs.INTEGER if format.sample_type == SampleType.INTEGER else vs.FLOAT)
         )
         return config['resizer'](
             self._raw_node,
