@@ -41,7 +41,7 @@ class AlphaFrame(Frame):
         if not nf.planar:
             return nf
 
-        return nf._replace(num_fields=nf.num_fields+1)
+        return nf._replace(fields=nf.fields[:-1])
 
     async def can_render(self, format: RawFormat) -> bool:
         await self.ensure_acquired()
@@ -55,8 +55,8 @@ class AlphaFrame(Frame):
         if format.num_planes not in (2, 4):
             return (await self.main.can_render(format))
 
-        main_f = format._replace(num_fields=format.num_fields-1)
-        alpha_f = format._replace(num_fields=1, family=ColorFamily.GREY)
+        main_f = format._replace(fields=format.fields[:-1])
+        alpha_f = format._replace(fields=["a"], family=ColorFamily.GREY)
         return all(await gather(self.main.can_render(main_f), self.alpha.can_render(alpha_f)))
 
     async def render_into(self, buffer: Buffer, plane: int, format: RawFormat, offset: int = 0) -> int:
@@ -68,8 +68,8 @@ class AlphaFrame(Frame):
         if format.num_planes not in (2, 4):
             return (await self.main.render_into(buffer, plane, format, offset))
 
-        main_f = format._replace(num_fields=format.num_fields-1)
-        alpha_f = format._replace(num_fields=1, family=ColorFamily.GREY)
+        main_f = format._replace(fields=format.fields-1)
+        alpha_f = format._replace(fields=1, family=ColorFamily.GREY)
         if format.num_planes-1 == plane:
             return (await self.alpha.render_into(buffer, 0, alpha_f, offset))
         else:

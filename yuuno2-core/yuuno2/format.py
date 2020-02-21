@@ -39,26 +39,23 @@ class ColorFamily(Enum):
     def __init__(self, v1num: int, planes: int, name: str, simple_fields: List[str]):
         self.v1num = v1num
         self.planes = planes
-        self.name = name
+        self.family_name = name
         self.simple_fields = simple_fields
 
 
 class RawFormat(NamedTuple):
+    type: str
     family: ColorFamily
     fields: List[Optional[str]]
     alpha: bool
 
     sample_type: SampleType
     bits_per_sample: int
-    _alignment: int = 0
+    alignment_: int = 0
 
     planar: bool = True
     subsampling: Tuple[int, int] = [0, 0]
 
-    def __init__(self, *args, **kwargs):
-        if "alignment" in kwargs:
-            kwargs["_alignment"] = kwargs.pop("alignment", 0)
-        super().__init__(*args, **kwargs)
 
     @classmethod
     def from_json(self, data):
@@ -80,6 +77,7 @@ class RawFormat(NamedTuple):
                 fields.append(None)
 
             data = [{
+                "type": "video",
                 "colorspace": {
                     "family": cf.name,
                     "alpha": halpha,
@@ -99,47 +97,50 @@ class RawFormat(NamedTuple):
 
         if data[-1] == "v2":
             info = data[0]
-            cf = ColorFamily[info["colorspace"]["family"]]
-            alpha = info["colorspace"]["alpha"]
-            fields = info["colorspace"]["fields"]
 
-            st = SampleType[info["dataformat"]["type"].upper()]
-            sz = info["dataformat"]["size"]
+            if info["type"] == "video":
+                cf = ColorFamily[info["colorspace"]["family"]]
+                alpha = info["colorspace"]["alpha"]
+                fields = info["colorspace"]["fields"]
 
-            planar = info["planar"]
-            subsampling = info["subsampling"]
-            alignment = info["alignment"]
+                st = SampleType[info["dataformat"]["type"].upper()]
+                sz = info["dataformat"]["size"]
 
-            return RawFormat(cf, fields, alpha, st, sz, alignment, planar, subsampling)
+                planar = info["planar"]
+                subsampling = info["subsampling"]
+                alignment = info["alignment"]
+
+                return RawFormat("video", cf, fields, alpha, st, sz, alignment, planar, subsampling)
 
         raise ValueError("Unsupported format")
 
     def to_json(self):
         return [{
+            "type": "video",
             "colorspace": {
                 "family": self.family.name,
                 "alpha": self.alpha,
                 "fields": self.fields
             },
-            "dataformat": {
+            "dataformat":{
                 "type": "float" if self.sample_type == SampleType.FLOAT else "integer",
                 "size": self.bits_per_sample
             },
             "planar": self.planar,
             "subsampling": self.subsampling,
-            "alignment": self.alignment
+            "alignment": self.alignment_
         }, "v2"]
-
-    def replace(self, **settings) -> 'RawFormat':
-        return self._replace(**settings)
 
     @property
     def bytes_per_sample(self) -> int:
         return (self.bits_per_sample + 7) // 8
 
+    def replace(self, **settings) -> 'RawFormat':
+        return self._replace(**settings)
+
     @property
     def num_fields(self) -> int:
-        return self.family.simple_fields + self.alpha
+        return len(self.family.simple_fields) + self.alpha
 
     @property
     def num_planes(self) -> int:
@@ -150,12 +151,12 @@ class RawFormat(NamedTuple):
 
     @property
     def alignment(self):
-        if self._alignment == 0:
+        if self.alignment_ == 0:
             if self.planar:
                 return self.bytes_per_sample
             else:
                 return self.bytes_per_sample * self.num_fields
-        return self._alignment
+        return self.alignment_
 
     def get_stride(self, plane: int, size: Size) -> int:
         stride = self.get_plane_dimensions(plane, size).width
@@ -200,8 +201,8 @@ class RawFormat(NamedTuple):
 RawFormat.SampleType = SampleType
 RawFormat.ColorFamily = ColorFamily
 
-#                  Families          Field-Order            Alpha  Sample-Type       BPP Alignment Planar  Subsampling
-GRAY8  = RawFormat(ColorFamily.GREY, ["g"],                 False, SampleType.INTEGER, 8, 1,       True,   (0, 0))
-RGB24  = RawFormat(ColorFamily.RGB,  ["r", "g", "b"],       False, SampleType.INTEGER, 8, 1,       True,   (0, 0))
-RGBX32 = RawFormat(ColorFamily.RGB,  ["r", "g", "b", None], False, SampleType.INTEGER, 8, 4,       False,  (0, 0))
-RGBA32 = RawFormat(ColorFamily.RGB,  ["r", "g", "b", "a"],  True,  SampleType.INTEGER, 8, 4,       False,  (0, 0))
+#                           Families          Field-Order            Alpha  Sample-Type       BPP Alignment Planar  Subsampling
+GRAY8  = RawFormat("video", ColorFamily.GREY, ["g"],                 False, SampleType.INTEGER, 8, 1,       True,   (0, 0))
+RGB24  = RawFormat("video", ColorFamily.RGB,  ["r", "g", "b"],       False, SampleType.INTEGER, 8, 1,       True,   (0, 0))
+RGBX32 = RawFormat("video", ColorFamily.RGB,  ["r", "g", "b", None], False, SampleType.INTEGER, 8, 4,       False,  (0, 0))
+RGBA32 = RawFormat("video", ColorFamily.RGB,  ["r", "g", "b", "a"],  True,  SampleType.INTEGER, 8, 4,       False,  (0, 0))

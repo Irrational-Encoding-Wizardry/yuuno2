@@ -64,7 +64,6 @@ class TestAlphaFrame(AsyncTestCase):
         async with m, a:
             async with AlphaFrame(m, a) as f:
                 self.assertEqual(f.size, Size(1, 1))
-                self.assertEqual(f.native_format, RGB24._replace(num_fields=4))
 
     async def test_attributes_packed(self):
         mf = RGB24._replace(planar=False)

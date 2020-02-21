@@ -18,11 +18,12 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from setuptools import setup, find_packages
 
-with open('README.rst', encoding="utf-8") as readme_file:
-    readme = readme_file.read()
-
-with open('HISTORY.rst', encoding="utf-8") as history_file:
-    history = history_file.read()
+# with open('README.rst', encoding="utf-8") as readme_file:
+#     readme = readme_file.read()
+#
+# with open('HISTORY.rst', encoding="utf-8") as history_file:
+#     history = history_file.read()
+readme = history = ""
 
 requirements = [
     "notebook", "IPython",                                      # IPython is technically part of notebook.
@@ -40,7 +41,7 @@ setup_requires = [
 ]
 
 setup(
-    name='yuuno-server',
+    name='yuuno2-notebook',
     version='2.0',
     description="Yuuno-Server - Remote encoding server.",
     long_description=readme + '\n\n' + history,
