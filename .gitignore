@@ -154,3 +154,6 @@ typings/
 .gradle/
 
 venv3.8/
+
+yuuno2.js/**/node_modules/
+yuuno2.js/packages/*/lib/
