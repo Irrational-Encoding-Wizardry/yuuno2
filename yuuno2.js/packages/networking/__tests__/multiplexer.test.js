@@ -4,7 +4,7 @@ const bus = require('../lib/messagebus');
 const connection = require('../lib/connection');
 const base = require('../lib/base');
 const pipe = require('../lib/pipe');
-const multiplexer = require('../lib/multiplexer');
+const mp = require('../lib/multiplexer');
 
 describe('@yuuno2/networking', () => {
     describe('The Multiplexer', () => {
@@ -16,7 +16,7 @@ describe('@yuuno2/networking', () => {
             const {first, second} = pipe.pipe();
             second.registerMessageHandler((msg) => received.push(msg));
             send = async (msg) => await second.send(msg);
-            multiplexer = new multiplexer.Multuplexer(first);
+            multiplexer = new mp.Multuplexer(first);
         });
 
         describe('when it receives a message', () => {
@@ -81,7 +81,7 @@ describe('@yuuno2/networking', () => {
                 await child.close();
                 expect(received).toStrictEqual([
                     {text: {type: "close", target: "known", payload: {}}, blobs: []}
-                ])
+                ]);
             });
         });
     });
