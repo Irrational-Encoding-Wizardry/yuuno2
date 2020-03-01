@@ -7,36 +7,41 @@ const pipe = require('../lib/pipe');
 const mp = require('../lib/multiplexer');
 
 describe('@yuuno2/networking', () => {
+
     describe('The Multiplexer', () => {
-        let received = [];
+        let received;
         let send;
         let multiplexer;
 
         beforeEach(() => {
-            const {first, second} = pipe.pipe();
-            second.registerMessageHandler((msg) => received.push(msg));
+            received = [];
+            const {first, second} = pipe.inlinePipe();
+            second.registerMessageHandler((msg) => {
+                received.push(msg)
+            });
             send = async (msg) => await second.send(msg);
-            multiplexer = new mp.Multuplexer(first);
+            multiplexer = new mp.Multiplexer(first);
         });
 
         describe('when it receives a message', () => {
             it('should automatically close connections that are unknown', async () => {
                 await send({text: {type: "message", target: "unknown", payload: {}, blobs: []}});
-                expect(received).toStrictEqual([{text: {type: "close", target: "unknown", payload: {}}}])
+                expect(received).toStrictEqual([{text: {type: "close", target: "unknown", payload: {}}, blobs: []}])
             });
 
             describe('on a known connection', () => {
                 let child;
-                let receivedChild = [];
+                let receivedChild;
 
                 beforeEach(() => {
+                    receivedChild = [];
                     child = multiplexer.register("known");
                     child.registerMessageHandler((msg) => receivedChild.push(msg));
                 });
 
                 it('should forward messages unwrapped', async() => {
                     await send({text: {type: "message", target: "known", payload: {test: 1}}, blobs: []});
-                    expect(receivedChild).toStrictEqual([{test: 1, blobs: []}]);
+                    expect(receivedChild).toStrictEqual([{text: {test: 1}, blobs: []}]);
                     expect(received.length).toBe(0);
                 });
 

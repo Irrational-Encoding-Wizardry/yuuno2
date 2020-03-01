@@ -10,15 +10,15 @@ export class Multiplexer
 
     private controlToken: any;
 
-    private streams: {[x: string]: SimpleConnection} = {};
+    private streams: Map<string|null, SimpleConnection> = new Map();
 
     constructor(conn: Connection) {
         this.conn = conn;
         this.controlToken = this.conn.registerMessageHandler(async (msg) => {
             if (msg.text.type != "message") return;
-            const target: string = (typeof msg.text.target != "string") ? "" : (msg.text.target as string);
-            if (!!this.streams[target]) {
-                await this.conn.send({text: {target: msg.text.target, type: "close", payload: {}}, blobs: []})
+            const target: string = ((typeof msg.text.target != "string") ? "" : (msg.text.target as string));
+            if (!this.streams.has(target)) {
+                await this.conn.send({text: {target: msg.text.target, type: "close", payload: {}}, blobs: []});
             }
         });
     }
@@ -30,10 +30,8 @@ export class Multiplexer
      * @returns A new connection with the given name.
      */
     register(name: string): Connection {
-        let _regname = name || "";
-
         // If the channel already exists, return that stream instead.
-        if (!!this.streams[_regname]) return this.streams[name];
+        if (!!this.streams.has(name)) return this.streams.get(name);
 
         let ingressBus = new MessageBus();
         let egressBus = new MessageBus();
@@ -52,10 +50,14 @@ export class Multiplexer
                     await ingressBus.close();
                 } else {
                     // Kill connection on illegal message.
-                    if (typeof msg.text.payload !== 'object') {
+                    if (msg.text.payload === null || msg.text.payload === undefined || typeof msg.text.payload !== 'object') {
                         await this.conn.send({text: {target: name, type: 'illegal', payload: {}}, blobs: []});
                         await ingressBus.close();
+
+                        // Before closing, unregister the message handler so we don't send out a close signal.
+                        egressBus.unregisterMessageHandler(skipEgress);
                         await egressBus.close();
+                        return;
                     }
 
                     // Unwrap message and forward.
@@ -65,11 +67,11 @@ export class Multiplexer
         });
 
         // Wrap messages sent to the channel.
-        egressBus.registerMessageHandler(async (msg) => {
+        const skipEgress = egressBus.registerMessageHandler(async (msg) => {
             // On close
             if (msg === null) {
                 // Unregister the stream for further messages.
-                delete this.streams[name];
+                this.streams.delete(name);
 
                 // Remove the handler
                 this.conn.unregisterMessageHandler(closeToken);
@@ -87,7 +89,7 @@ export class Multiplexer
 
         // Register the connection.
         let multiplexed = new SimpleConnection(ingressBus, egressBus);
-        this.streams[_regname] = multiplexed;
+        this.streams.set(name, multiplexed);
         return multiplexed;
     }
 
@@ -95,8 +97,16 @@ export class Multiplexer
      * Close the multiplexer and close the underlying message.
      */
     async close() {
-        await Promise.all(Object.values(this.streams).map((s) => new Promise(rs => s.close().then(rs, rs))));
+        await Promise.all(__map_values(this.streams).map((s) => s.close().then(()=>{}, console.error)));
         this.conn.unregisterMessageHandler(this.controlToken);
         await this.conn.close();
     }
+}
+
+
+function __map_values<K, V>(map: Map<K, V>) : V[] {
+    if (typeof map.values === 'function') return Array.from(map.values());
+    let vs: V[] = [];
+    map.forEach((v, k) => vs.push(v));
+    return vs;
 }
