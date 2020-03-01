@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Yuuno - IPython + VapourSynth
-# Copyright (C) 2019 StuxCrystal (Roland Netzsch <stuxcrystal@encode.moe>)
+# Copyright (C) 2019, 2020 StuxCrystal (Roland Netzsch <stuxcrystal@encode.moe>)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -31,7 +31,7 @@ class SampleType(IntEnum):
 
 
 class ColorFamily(Enum):
-    GREY = (0, 1, "grey", ["g"])
+    GREY = (0, 1, "grey", ["y"])
     RGB  = (1, 3, "rgb",  ["r", "g", "b"])
     YUV  = (2, 3, "yuv",  ["y", "u", "v"])
     CMYK = (3, 4, "cmyk", ["c", "m", "y", "k"])
@@ -202,7 +202,7 @@ RawFormat.SampleType = SampleType
 RawFormat.ColorFamily = ColorFamily
 
 #                           Families          Field-Order            Alpha  Sample-Type       BPP Alignment Planar  Subsampling
-GRAY8  = RawFormat("video", ColorFamily.GREY, ["g"],                 False, SampleType.INTEGER, 8, 1,       True,   (0, 0))
+GRAY8  = RawFormat("video", ColorFamily.GREY, ["y"],                 False, SampleType.INTEGER, 8, 1,       True,   (0, 0))
 RGB24  = RawFormat("video", ColorFamily.RGB,  ["r", "g", "b"],       False, SampleType.INTEGER, 8, 1,       True,   (0, 0))
 RGBX32 = RawFormat("video", ColorFamily.RGB,  ["r", "g", "b", None], False, SampleType.INTEGER, 8, 4,       False,  (0, 0))
 RGBA32 = RawFormat("video", ColorFamily.RGB,  ["r", "g", "b", "a"],  True,  SampleType.INTEGER, 8, 4,       False,  (0, 0))
