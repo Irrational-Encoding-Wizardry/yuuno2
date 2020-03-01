@@ -159,10 +159,10 @@ class RawFormat(NamedTuple):
         return self.alignment_
 
     def get_stride(self, plane: int, size: Size) -> int:
-        stride = self.get_plane_dimensions(plane, size).width
+        stride = self.get_plane_dimensions(plane, size).width * self.bytes_per_sample
 
         if not self.planar:
-            stride *= self.num_fields
+            stride *= len(self.fields)
 
         alignment = self.alignment
         if stride % alignment != 0:

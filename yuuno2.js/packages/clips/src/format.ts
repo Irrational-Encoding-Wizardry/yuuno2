@@ -191,6 +191,13 @@ export class RawFormat {
         this._fieldOrder = fieldOrder;
     }
 
+    public static simple(colorFamily: ColorFamily, hasAlpha: boolean, sampleType: SampleType, bps: number) : RawFormat {
+        let fields = colorFamily.fields;
+        if (hasAlpha)
+            fields.push("a");
+        return new RawFormat(bps, fields, 0, [0, 0], true, hasAlpha, colorFamily, sampleType);
+    }
+
     public get bitsPerSample(): number {
         return this._bitsPerSample;
     }
@@ -235,9 +242,9 @@ export class RawFormat {
     }
 
     public getStride(plane: number, size: Size) : number {
-        let stride = this.getPlaneDimensions(plane, size).width;
+        let stride = this.getPlaneDimensions(plane, size).width * this.bytesPerSample;
         if (!this._isPlanar)
-            stride *= this.numFields;
+            stride *= this._fieldOrder.length;
         
         let alignment = this.alignment;
         if ((stride % alignment) != 0)

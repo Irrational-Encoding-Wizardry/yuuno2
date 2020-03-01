@@ -15,3 +15,16 @@
  * You should have received a copy of the GNU Lesser General Public License
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
+
+export { RawFormat, SampleType, ColorFamily } from './format';
+export { Clip, Frame } from './base';
+export { Script, ScriptProvider, ConfigTypes } from './scripts';
+
+export namespace Simple {
+    export const { SimpleClip: Clip, SimpleFrame: Frame } = require('./simple/clip');
+    export const { SimpleScript: Script } = require('./simple/script');
+}
+
+export { SingleScriptProvider } from './providers/single';
+export { NamedScriptProvider } from './providers/named';
+export { AggregateError } from './utils';

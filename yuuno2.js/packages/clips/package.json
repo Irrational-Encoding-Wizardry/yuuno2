@@ -29,9 +29,9 @@
   },
   "devDependencies": {
     "jest": "^25.1.0",
-    "typescript": "^3.8.3"
+    "typescript": "^3.8.3",
+    "pngjs": "^3.4.0"
   },
   "dependencies": {
-    "@yuuno2/networking": "^2.0.0"
   }
 }
