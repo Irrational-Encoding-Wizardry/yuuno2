@@ -1,0 +1,59 @@
+{
+    // Use IntelliSense to learn about possible attributes.
+    // Hover to view descriptions of existing attributes.
+    // For more information, visit: https://go.microsoft.com/fwlink/?linkid=830387
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test: @yuuno2/networking",
+            "program": "${workspaceFolder}/yuuno2.js/packages/networking/node_modules/.bin/jest",
+            "args": ["--runInBand"],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "disableOptimisticBPs": true,
+            "windows": {
+                "program": "${workspaceFolder}/yuuno2.js/packages/networking/node_modules/jest/bin/jest",
+            },
+            "localRoot": "${workspaceFolder}/yuuno2.js/packages/networking",
+            "remoteRoot": "${workspaceFolder}/yuuno2.js/packages/networking",
+            "cwd": "${workspaceFolder}/yuuno2.js/packages/networking",
+            "preLaunchTask": "Compile @yuuno2/networking"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test: @yuuno2/clips",
+            "program": "${workspaceFolder}/yuuno2.js/packages/clips/node_modules/.bin/jest",
+            "args": ["--runInBand"],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "disableOptimisticBPs": true,
+            "windows": {
+                "program": "${workspaceFolder}/yuuno2.js/packages/clips/node_modules/jest/bin/jest",
+            },
+            "localRoot": "${workspaceFolder}/yuuno2.js/packages/clips",
+            "remoteRoot": "${workspaceFolder}/yuuno2.js/packages/clips",
+            "cwd": "${workspaceFolder}/yuuno2.js/packages/clips",
+            "preLaunchTask": "Compile @yuuno2/clips"
+        },
+        {
+            "type": "node",
+            "request": "launch",
+            "name": "Test: @yuuno2/remote",
+            "program": "${workspaceFolder}/yuuno2.js/packages/remote/node_modules/.bin/jest",
+            "args": ["--runInBand"],
+            "console": "integratedTerminal",
+            "internalConsoleOptions": "neverOpen",
+            "disableOptimisticBPs": true,
+            "windows": {
+                "program": "${workspaceFolder}/yuuno2.js/packages/remote/node_modules/jest/bin/jest",
+            },
+            "localRoot": "${workspaceFolder}/yuuno2.js/packages/remote",
+            "remoteRoot": "${workspaceFolder}/yuuno2.js/packages/remote",
+            "cwd": "${workspaceFolder}/yuuno2.js/packages/remote",
+            "preLaunchTask": "Compile @yuuno2/remote"
+        }
+    ]
+}

@@ -1,0 +1,28 @@
+{
+    // See https://go.microsoft.com/fwlink/?LinkId=733558 
+    // for the documentation about the tasks.json format
+    "version": "2.0.0",
+    "tasks": [
+        {
+            "label": "Compile @yuuno2/networking",
+            "type": "npm",
+            "script": "tsc",
+            "path": "yuuno2.js/packages/networking/",
+            "problemMatcher": []
+        },
+        {
+            "label": "Compile @yuuno2/clips",
+            "type": "npm",
+            "script": "tsc",
+            "path": "yuuno2.js/packages/clips/",
+            "problemMatcher": []
+        },
+        {
+            "label": "Compile @yuuno2/remote",
+            "type": "npm",
+            "script": "tsc",
+            "path": "yuuno2.js/packages/remote/",
+            "problemMatcher": []
+        }
+    ]
+}

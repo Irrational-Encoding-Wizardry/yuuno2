@@ -1,0 +1,36 @@
+{
+  "name": "@yuuno2/clips",
+  "version": "2.0.0",
+  "description": "Datastructurs for the Yuuno classes.",
+  "author": "StuxCrystal <stuxcrystal@encode.moe>",
+  "homepage": "https://github.com/irrational-encoding-wizardry/yuuno2#readme",
+  "license": "GPL-3.0",
+  "main": "lib/clips.js",
+  "directories": {
+    "lib": "lib",
+    "test": "__tests__"
+  },
+  "files": [
+    "lib"
+  ],
+  "publishConfig": {
+    "access": "public"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/irrational-encoding-wizardry/yuuno2.git"
+  },
+  "scripts": {
+    "test": "npm run tsc && jest",
+    "tsc": "tsc"
+  },
+  "bugs": {
+    "url": "https://github.com/irrational-encoding-wizardry/yuuno2/issues"
+  },
+  "devDependencies": {
+    "jest": "^25.1.0",
+    "typescript": "^3.8.3"
+  },
+  "dependencies": {
+  }
+}

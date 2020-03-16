@@ -1,0 +1,19 @@
+{
+    "files.exclude": {
+        "**/.git": true,
+        "**/.svn": true,
+        "**/.hg": true,
+        "**/CVS": true,
+        "**/.DS_Store": true
+    },
+    "files.watcherExclude": {
+        "**/.git/objects/**": true,
+        "**/.git/subtree-cache/**": true,
+        "**/node_modules/*/**": true,
+        "**/venv": true,
+        "yuuno2.js/**/lib": true,
+        "yuuno2.js/**/dist": true
+    },
+    "python.pythonPath": "venv/bin/python3.8",
+    "python.testing.unittestEnabled": true
+}
