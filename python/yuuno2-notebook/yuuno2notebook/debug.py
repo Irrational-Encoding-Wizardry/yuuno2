@@ -2,7 +2,7 @@ from typing import Any
 
 from IPython.core.magic import magics_class
 
-from yuuno2notebook.magic_base import ResourceMagics, line_magic
+from yuuno2notebook.magic_base import ResourceMagics, line_magic, as_async_command
 
 from yuuno2.resource_manager import _resources, ResourceProxy
 
@@ -26,6 +26,7 @@ class DebugMagics(ResourceMagics):
         super().__init__(*args, **kwargs)
 
     @line_magic
+    @as_async_command
     def debug_y2_res(self, _):
         print("digraph {")
         for resource, state in _resources.items():

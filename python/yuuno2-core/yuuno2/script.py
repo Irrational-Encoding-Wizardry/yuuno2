@@ -75,3 +75,8 @@ class ScriptProvider(Resource, ABC):
     @abstractmethod
     async def get(self, **params: Any) -> Optional[Script]:
         pass
+
+    @abstractmethod
+    async def list(self) -> AsyncIterator[Dict]:
+        if False:
+            yield

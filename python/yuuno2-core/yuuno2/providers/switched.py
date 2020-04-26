@@ -38,6 +38,12 @@ class SwitchedScriptProvider(ScriptProvider):
 
         return (await self.parents[stype].get(**params))
 
+    async def list(self):
+        for name, parent in self.parents.items():
+            async for d in parent.list():
+                d[self._switch] = name
+                yield d
+
     async def _acquire(self) -> NoReturn:
         for parent in self.parents.values():
             await parent.acquire()

@@ -40,7 +40,7 @@ setup_requires = [
 ]
 
 setup(
-    name='yuuno-server',
+    name='yuuno2-server',
     version='2.0',
     description="Yuuno-Server - Remote encoding server.",
     long_description=readme + '\n\n' + history,

@@ -31,6 +31,9 @@ class SingleScriptProvider(ScriptProvider):
         await self.ensure_acquired()
         return self.script
 
+    async def list(self):
+        yield self.script
+
     async def _acquire(self) -> NoReturn:
         await self.script.acquire()
         register(self.script, self)

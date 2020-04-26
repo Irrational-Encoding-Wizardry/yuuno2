@@ -124,7 +124,7 @@ class FileInputStream(ByteInputStream):
             _cancel_atom = [Event()]
             self._cancel_current_io_op = _cancel_atom
             while not _cancel_atom[0].is_set():
-                r, _, _ = select.select([self.fobj], [], [], timeout=0)
+                r, _, _ = select.select([self.fobj], [], [], 0)
                 if not r:
                     _cancel_atom[0].wait(.1)
                     continue

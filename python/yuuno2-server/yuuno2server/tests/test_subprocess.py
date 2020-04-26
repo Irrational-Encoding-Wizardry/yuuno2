@@ -1,7 +1,7 @@
 import asyncio
 import os
 import sys
-from asyncio import ProactorEventLoop, wait_for
+from asyncio import wait_for
 
 from aiounittest import AsyncTestCase
 
@@ -43,6 +43,7 @@ class TestSubprocessScript(AsyncTestCase):
 
     if sys.platform.startswith("win"):
         def get_event_loop(self):
+            from asyncio import ProactorEventLoop
             return ProactorEventLoop()
 
     async def test_make_subprocess(self):

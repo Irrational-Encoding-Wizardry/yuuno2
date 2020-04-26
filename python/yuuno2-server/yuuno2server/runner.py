@@ -10,6 +10,8 @@ from yuuno2.networking.base import Connection
 from yuuno2.providers.remote.server import RemoteScriptServer
 from yuuno2.resource_manager import register
 
+from yuuno2.asyncutils import get_yuuno_loop, register_event_loop
+
 from yuuno2.script import Script, NOT_GIVEN, ScriptProvider
 from yuuno2.typings import ConfigTypes
 from yuuno2server.loops import install_event_loop
@@ -125,6 +127,7 @@ if __name__ == "__main__":
 
         print("Spinning up event-loop", file=sys.stderr)
         install_event_loop(event_loop)
+        register_event_loop(event_loop)
         loop = asyncio.get_event_loop()
         aiorun.run(_run_with_provider(sp), loop=loop)
 

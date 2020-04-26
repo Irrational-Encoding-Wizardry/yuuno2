@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from typing import NoReturn, Any, Optional, MutableMapping
+from typing import NoReturn, Any, Optional, MutableMapping, AsyncIterator, Dict
 
 from yuuno2.resource_manager import register, on_release
 from yuuno2.script import ScriptProvider, Script
@@ -24,15 +24,16 @@ from yuuno2.script import ScriptProvider, Script
 
 class NamedScriptProvider(ScriptProvider):
 
-    def __init__(self, parent: ScriptProvider):
+    def __init__(self, parent: ScriptProvider, *, param_name: str = "name"):
         self.parent = parent
+        self._param_name = param_name
 
         self._scripts: MutableMapping[str, Script] = {}
 
     async def get(self, **params: Any) -> Optional[Script]:
         await self.ensure_acquired()
 
-        name: Optional[str] = params.pop('name', None)
+        name: Optional[str] = params.pop(self._param_name, None)
         if name is None:
             return await self.parent.get(**params)
 
@@ -47,6 +48,10 @@ class NamedScriptProvider(ScriptProvider):
         self._scripts[name] = script
         on_release(script, lambda s: self._release_script(name))
         return script
+
+    async def list(self) -> AsyncIterator[Dict]:
+        for name in tuple(self._scripts):
+            yield {self._param_name: name}
 
     def _release_script(self, name: str):
         del self._scripts[name]

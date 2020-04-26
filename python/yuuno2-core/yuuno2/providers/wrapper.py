@@ -54,6 +54,11 @@ class WrappedScriptProvider(ScriptProvider):
         await self.ensure_acquired()
         return await self.provider.get(**params)
 
+    async def list(self):
+        await self.ensure_acquired()
+        async for d in self.provider.list():
+            yield d
+
     async def _acquire(self) -> NoReturn:
         await self.provider.acquire()
         register(self.provider, self)

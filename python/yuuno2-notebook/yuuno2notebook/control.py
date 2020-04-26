@@ -2,6 +2,7 @@ from IPython.core.magic import magics_class, line_magic
 from traitlets import Any
 
 from yuuno2.script import Script
+from yuuno2notebook.utils import run_in_main_thread
 from yuuno2notebook.magic_base import ResourceMagics, as_async_command
 
 
@@ -29,7 +30,7 @@ class ControlMagics(ResourceMagics):
                 return
 
             key, raw_value = op
-            value = eval(raw_value)
+            value = await run_in_main_thread(eval, raw_value)
             script: Script = self.env.current_core
             await script.set_config(key, value)
             print("Config updated.")

@@ -38,7 +38,7 @@ setup_requires = [
 ]
 
 setup(
-    name='yuuno-core',
+    name='yuuno2-core',
     version='2.0',
     description="Yuuno-Core - Extract frames from videos.",
     long_description=readme + '\n\n' + history,
