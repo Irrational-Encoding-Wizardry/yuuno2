@@ -1,7 +1,7 @@
 import asyncio
 import os
 import sys
-from typing import None, Mapping, Union, Any, Sequence
+from typing import Mapping, Union, Any, Sequence
 
 import aiorun
 

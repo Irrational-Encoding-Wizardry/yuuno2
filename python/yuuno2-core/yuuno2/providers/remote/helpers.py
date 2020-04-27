@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from abc import ABC, abstractmethod
-from typing import None, Type, Tuple, Callable, Dict, List
+from typing import Type, Tuple, Callable, Dict, List
 
 from yuuno2.networking.base import Connection
 from yuuno2.networking.multiplex import Multiplexer

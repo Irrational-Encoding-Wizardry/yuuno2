@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from typing import None, Mapping, Union, Any, Sequence, Iterator, Optional
+from typing import Mapping, Union, Any, Sequence, Iterator, Optional
 
 from yuuno2.clip import Clip
 from yuuno2.clips.remote import RemoteClip

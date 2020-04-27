@@ -19,7 +19,7 @@
 import functools
 from types import new_class
 from collections import deque
-from typing import None, Coroutine, TypeVar, Generic, Optional, Iterator, Any, Callable, Type, Awaitable
+from typing import Coroutine, TypeVar, Generic, Optional, Iterator, Any, Callable, Type, Awaitable
 
 
 class Buffer(object):

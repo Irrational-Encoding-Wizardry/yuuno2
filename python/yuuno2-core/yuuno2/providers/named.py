@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from typing import None, Any, Optional, MutableMapping, AsyncIterator, Dict
+from typing import Any, Optional, MutableMapping, AsyncIterator, Dict
 
 from yuuno2.resource_manager import register, on_release
 from yuuno2.script import ScriptProvider, Script

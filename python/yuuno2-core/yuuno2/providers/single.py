@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from typing import None, Any, Optional
+from typing import Any, Optional
 
 from yuuno2.resource_manager import register
 from yuuno2.script import Script, ScriptProvider

@@ -1,4 +1,4 @@
-from typing import None, Mapping, Union, Any, Sequence, Optional
+from typing import Mapping, Union, Any, Sequence, Optional
 
 from yuuno2.clip import Clip
 from yuuno2.resource_manager import register

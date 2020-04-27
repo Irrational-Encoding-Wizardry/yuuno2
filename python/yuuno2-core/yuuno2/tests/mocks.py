@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from typing import None, Union, Sequence, Any, Mapping, Optional
+from typing import Union, Sequence, Any, Mapping, Optional
 
 from yuuno2 import resource_manager, script
 from yuuno2.clip import Clip, Frame

@@ -4,7 +4,7 @@ import sys
 from threading import Thread, Event, Lock
 from asyncio import get_running_loop, sleep, AbstractEventLoop, Event as AEvent
 from concurrent.futures import ThreadPoolExecutor
-from typing import None, Optional
+from typing import Optional
 
 from yuuno2.asyncutils import dynamic_timeout
 from yuuno2.networking.base import Message

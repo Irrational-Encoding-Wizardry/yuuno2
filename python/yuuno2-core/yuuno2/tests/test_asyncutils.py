@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from asyncio import sleep, ensure_future, CancelledError, TimeoutError
-from typing import None, Optional, Any
+from typing import Optional, Any
 
 from aiounittest import AsyncTestCase
 from yuuno2.asyncutils import dynamic_timeout

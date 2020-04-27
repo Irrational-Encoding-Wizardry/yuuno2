@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import types
-from typing import None, Mapping, Union, Any, Sequence
+from typing import Mapping, Union, Any, Sequence
 
 from vapoursynth import Environment, vpy_current_environment
 from vapoursynth import get_outputs, get_core, Core
