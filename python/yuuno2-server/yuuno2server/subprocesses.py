@@ -1,7 +1,7 @@
 import asyncio
 import os
 import sys
-from typing import Optional, None, Mapping, Union, Any, Sequence
+from typing import Optional, Mapping, Union, Any, Sequence
 from asyncio import SubprocessProtocol, SubprocessTransport, AbstractEventLoop, get_running_loop
 
 from yuuno2.clip import Clip

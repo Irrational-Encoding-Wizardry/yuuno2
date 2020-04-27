@@ -1,6 +1,6 @@
 import abc
 from asyncio import coroutine, gather
-from typing import Callable, Awaitable, Any, None
+from typing import Callable, Awaitable, Any
 
 from yuuno2.networking.message import Message
 

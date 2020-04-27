@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from asyncio import gather
-from typing import Optional, Union, List, None, Mapping
+from typing import Optional, Union, List, Mapping
 
 from yuuno2.clip import Clip, MetadataContainer, Frame
 from yuuno2.format import RawFormat, Size

@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from contextlib import contextmanager
-from typing import Mapping, Any, Optional, Union, None, Sequence
+from typing import Mapping, Any, Optional, Union, Sequence
 from typing import AsyncIterator, Dict
 from abc import ABC, abstractmethod
 

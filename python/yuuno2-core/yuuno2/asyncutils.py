@@ -196,7 +196,7 @@ class YuunoThread(Thread):
 # Coroutines based stuff.
 from asyncio import get_running_loop, ensure_future, Future, wait, FIRST_COMPLETED
 from asyncio import CancelledError, TimeoutError
-from typing import TypeVar, Awaitable, Any, Union, None
+from typing import TypeVar, Awaitable, Any, Union, 
 
 async def suppress_cancel(future: 'Future[Any]') -> None:
     try:

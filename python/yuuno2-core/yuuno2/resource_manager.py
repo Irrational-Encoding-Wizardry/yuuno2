@@ -22,7 +22,7 @@ This class manages asynchronous resource management.
 
 from _weakref import ref
 from _weakrefset import WeakSet
-from typing import Set, MutableMapping, None, Optional, Callable, List, Union
+from typing import Set, MutableMapping, Optional, Callable, List, Union
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from weakref import WeakKeyDictionary
