@@ -4,7 +4,7 @@ import sys
 from threading import Thread, Event, Lock
 from asyncio import get_running_loop, sleep, AbstractEventLoop, Event as AEvent
 from concurrent.futures import ThreadPoolExecutor
-from typing import NoReturn, Optional
+from typing import None, Optional
 
 from yuuno2.asyncutils import dynamic_timeout
 from yuuno2.networking.base import Message
@@ -44,13 +44,13 @@ class FileOutputStream(ByteOutputStream):
     async def send(self, data: bytes) -> None:
         await get_running_loop().run_in_executor(io_pool, self._send, data)
 
-    async def close(self) -> NoReturn:
+    async def close(self) -> None:
         await get_running_loop().run_in_executor(io_pool, self._close)
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         pass
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         await self.close()
 
 
@@ -156,11 +156,11 @@ class FileInputStream(ByteInputStream):
     def is_closed(self):
         return self._closed.is_set()
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         self.reader.start()
         await super()._acquire()
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         self._queue_open.clear()
 
         if not self._closed.is_set():

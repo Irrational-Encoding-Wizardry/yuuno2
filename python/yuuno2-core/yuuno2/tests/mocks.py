@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from typing import NoReturn, Union, Sequence, Any, Mapping, Optional
+from typing import None, Union, Sequence, Any, Mapping, Optional
 
 from yuuno2 import resource_manager, script
 from yuuno2.clip import Clip, Frame
@@ -32,10 +32,10 @@ class MockResource(resource_manager.Resource):
         self.has_acquired = False
         self.has_released = False
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         self.has_acquired = True
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         self.has_released = True
 
     def __repr__(self):
@@ -63,10 +63,10 @@ class MockFrame(Frame):
             "id": id(self)
         }
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         pass
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         pass
 
 
@@ -78,10 +78,10 @@ class MockClip(Clip):
     def __getitem__(self, item) -> Frame:
         return MockFrame()
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         pass
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         pass
 
     async def get_metadata(self) -> Mapping[str, Union[int, str, bytes]]:
@@ -95,13 +95,13 @@ class MockScript(script.Script):
     def __init__(self, config=None):
         self.config = config or {}
 
-    def activate(self) -> NoReturn:
+    def activate(self) -> None:
         pass
 
-    def deactivate(self) -> NoReturn:
+    def deactivate(self) -> None:
         pass
 
-    async def set_config(self, key: str, value: ConfigTypes) -> NoReturn:
+    async def set_config(self, key: str, value: ConfigTypes) -> None:
         self.config[key] = value
 
     async def get_config(self, key: str, default: Union[object, ConfigTypes] = NOT_GIVEN) -> ConfigTypes:
@@ -120,10 +120,10 @@ class MockScript(script.Script):
     async def retrieve_clips(self) -> Mapping[str, Clip]:
         return {"test": MockClip()}
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         pass
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         pass
 
 
@@ -131,8 +131,8 @@ class MockScriptProvider(script.ScriptProvider):
     async def get(self, **params: Mapping[str, Any]) -> Optional[Script]:
         return MockScript(params)
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         pass
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         pass

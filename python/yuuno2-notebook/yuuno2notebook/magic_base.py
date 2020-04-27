@@ -1,5 +1,5 @@
 import functools
-from asyncio import run_coroutine_threadsafe
+from asyncio import run_coroutine_threadsafe, coroutine
 
 from IPython import get_ipython
 from IPython.core.magic import Magics, line_cell_magic, line_magic, cell_magic, magic_kinds
@@ -13,7 +13,7 @@ __all__ = ["ResourceMagics", "line_magic", "cell_magic", "line_cell_magic"]
 def as_async_command(func):
     @functools.wraps(func)
     def _wrapper(*args, **kwargs):
-        return delay_call(func(*args, **kwargs))
+        return delay_call(coroutine(func)(*args, **kwargs))
     return _wrapper
 
 

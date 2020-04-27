@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from typing import NoReturn, Any, Optional
+from typing import None, Any, Optional
 
 from yuuno2.resource_manager import register
 from yuuno2.script import Script, ScriptProvider
@@ -34,10 +34,10 @@ class SingleScriptProvider(ScriptProvider):
     async def list(self):
         yield self.script
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         await self.script.acquire()
         register(self.script, self)
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         await self.script.release(force=False)
         self.script = None

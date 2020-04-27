@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from asyncio import gather
-from typing import Optional, Union, List, NoReturn, Mapping
+from typing import Optional, Union, List, None, Mapping
 
 from yuuno2.clip import Clip, MetadataContainer, Frame
 from yuuno2.format import RawFormat, Size
@@ -119,7 +119,7 @@ class RemoteFrame(Frame):
         self._native_format = None
         self._size = None
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         await self.remote_clip.acquire()
         await self.client.acquire()
 
@@ -133,7 +133,7 @@ class RemoteFrame(Frame):
         self._size = Size(*msg_sz.values)
         self._native_format = RawFormat.from_json(msg_format.values)
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         await self.remote_clip.release(force=False)
         await self.client.release(force=False)
         self.remote_clip = None
@@ -200,7 +200,7 @@ class RemoteClip(Clip):
             raise RuntimeError("Clip not acquired.")
         return self._sz
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         await self.connection.acquire()
         register(self.connection, self)
 
@@ -211,7 +211,7 @@ class RemoteClip(Clip):
         msg: Message = await self._client.length()
         self._sz = msg.values['length']
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         await self.connection.release(force=False)
 
     async def get_metadata(self) -> Mapping[str, Union[int, str, bytes]]:

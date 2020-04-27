@@ -1,4 +1,4 @@
-from typing import NoReturn, Mapping, Union, Any, Sequence, Optional
+from typing import None, Mapping, Union, Any, Sequence, Optional
 
 from yuuno2.clip import Clip
 from yuuno2.resource_manager import register
@@ -11,13 +11,13 @@ class WrappedScript(Script):
     def __init__(self, script: Script):
         self.script = script
 
-    def activate(self) -> NoReturn:
+    def activate(self) -> None:
         self.script.activate()
 
-    def deactivate(self) -> NoReturn:
+    def deactivate(self) -> None:
         self.script.deactivate()
 
-    async def set_config(self, key: str, value: ConfigTypes) -> NoReturn:
+    async def set_config(self, key: str, value: ConfigTypes) -> None:
         await self.ensure_acquired()
         await self.script.set_config(key, value)
 
@@ -37,11 +37,11 @@ class WrappedScript(Script):
         await self.ensure_acquired()
         return await self.script.retrieve_clips()
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         await self.script.acquire()
         register(self.script, self)
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         await self.script.release(force=False)
 
 
@@ -59,9 +59,9 @@ class WrappedScriptProvider(ScriptProvider):
         async for d in self.provider.list():
             yield d
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         await self.provider.acquire()
         register(self.provider, self)
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         await self.provider.release(force=False)

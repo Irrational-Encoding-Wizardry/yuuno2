@@ -17,7 +17,8 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from contextlib import contextmanager
-from typing import Mapping, Any, Optional, Union, NoReturn, Sequence
+from typing import Mapping, Any, Optional, Union, None, Sequence
+from typing import AsyncIterator, Dict
 from abc import ABC, abstractmethod
 
 from yuuno2.resource_manager import Resource
@@ -31,14 +32,14 @@ NOT_GIVEN = object()
 class Script(Resource, ABC):
 
     @abstractmethod
-    def activate(self) -> NoReturn:
+    def activate(self) -> None:
         """
         :return:
         """
         pass
 
     @abstractmethod
-    def deactivate(self) -> NoReturn:
+    def deactivate(self) -> None:
         pass
 
     @contextmanager
@@ -50,7 +51,7 @@ class Script(Resource, ABC):
             self.deactivate()
 
     @abstractmethod
-    async def set_config(self, key: str, value: ConfigTypes) -> NoReturn:
+    async def set_config(self, key: str, value: ConfigTypes) -> None:
         pass
 
     @abstractmethod
@@ -76,7 +77,6 @@ class ScriptProvider(Resource, ABC):
     async def get(self, **params: Any) -> Optional[Script]:
         pass
 
-    @abstractmethod
     async def list(self) -> AsyncIterator[Dict]:
         if False:
             yield

@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from typing import NoReturn, Any, Optional
+from typing import None, Any, Optional
 
 from yuuno2.resource_manager import register
 from yuuno2.script import ScriptProvider, Script
@@ -32,7 +32,7 @@ class VSScript(VapourSynthScript):
         # noinspection PyTypeChecker
         super().__init__(None)
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         register(self.provider, self)
         self.script_environment = ScriptEnvironment()
         self.script_environment.enable()
@@ -40,7 +40,7 @@ class VSScript(VapourSynthScript):
         self.environment = self.script_environment.environment()
         await super()._acquire()
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         await super()._release()
         if self.script_environment is not None:
             self.script_environment.dispose()
@@ -55,13 +55,13 @@ class VSScriptProvider(ScriptProvider):
     async def get(self, **params: Any) -> Optional[Script]:
         return VSScript(self)
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         global _counter
         if _counter == 0:
             enable_vsscript()
         _counter += 1
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         global _counter
         _counter -= 1
         if _counter == 0:

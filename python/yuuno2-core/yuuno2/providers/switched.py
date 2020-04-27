@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from typing import NoReturn, Any, Optional
+from typing import None, Any, Optional
 
 from yuuno2.resource_manager import register
 from yuuno2.script import ScriptProvider, Script
@@ -44,11 +44,11 @@ class SwitchedScriptProvider(ScriptProvider):
                 d[self._switch] = name
                 yield d
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         for parent in self.parents.values():
             await parent.acquire()
             register(parent, self)
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         for parent in self.parents.values():
             await parent.release(force=False)

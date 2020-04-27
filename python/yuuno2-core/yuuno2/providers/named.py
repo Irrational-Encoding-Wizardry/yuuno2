@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from typing import NoReturn, Any, Optional, MutableMapping, AsyncIterator, Dict
+from typing import None, Any, Optional, MutableMapping, AsyncIterator, Dict
 
 from yuuno2.resource_manager import register, on_release
 from yuuno2.script import ScriptProvider, Script
@@ -56,10 +56,10 @@ class NamedScriptProvider(ScriptProvider):
     def _release_script(self, name: str):
         del self._scripts[name]
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         await self.parent.acquire()
         register(self.parent, self)
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         await self.parent.release(force=False)
         self.parent = None

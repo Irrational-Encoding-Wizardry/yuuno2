@@ -18,7 +18,7 @@
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import weakref
 from asyncio import ensure_future, wrap_future, gather
-from typing import NoReturn, Mapping, Union, Optional, Awaitable
+from typing import None, Mapping, Union, Optional, Awaitable
 
 import vapoursynth as vs
 from vapoursynth import VideoFrame, VideoNode, Format, core
@@ -253,14 +253,14 @@ class VapourSynthFrame(Frame):
     async def get_metadata(self) -> Mapping[str, Union[int, str, bytes]]:
         return self._raw_frame.props
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         with self.script.inside():
             self._raw_node = self.clip[self.frameno]
             _fut = get_frame_async(self._raw_node, 0)
 
         self._raw_frame = await _fut
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         self._raw_node = None
         self._raw_frame = None
 
@@ -281,10 +281,10 @@ class _VapourSynthClip(Clip):
     async def get_metadata(self) -> Mapping[str, Union[int, str, bytes]]:
         return {}
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         pass
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         self.clip = None
 
 

@@ -22,7 +22,7 @@ This class manages asynchronous resource management.
 
 from _weakref import ref
 from _weakrefset import WeakSet
-from typing import Set, MutableMapping, NoReturn, Optional, Callable, List, Union
+from typing import Set, MutableMapping, None, Optional, Callable, List, Union
 from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
 from weakref import WeakKeyDictionary
@@ -47,14 +47,14 @@ class Resource(ABC):
         return _get_state(self)
 
     @abstractmethod
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         """
         Acquires the resource.
         Only after you acquired it, you can use the resource (e.g. get metadata, render a frame, ...)
         """
 
     @abstractmethod
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         """
         Releases the frame and the associated resources.
 
@@ -62,7 +62,7 @@ class Resource(ABC):
         disposed incorrectly.
         """
 
-    async def acquire(self) -> NoReturn:
+    async def acquire(self) -> None:
         """
         Acquires the resource.
 
@@ -96,7 +96,7 @@ class Resource(ABC):
             else:
                 raise
 
-    async def release(self, *, force=True) -> NoReturn:
+    async def release(self, *, force=True) -> None:
         """
         Releases the resource.
 
@@ -142,7 +142,7 @@ class Resource(ABC):
 
         return True
 
-    async def ensure_acquired(self) -> NoReturn:
+    async def ensure_acquired(self) -> None:
         if not self.acquired:
             raise AssertionError("Resource not acquired.")
 
@@ -177,7 +177,7 @@ class ResourceState:
     parent_dead: bool = False
     parents: Set[Resource] = field(default_factory=WeakSet)
     children: Set[Resource] = field(default_factory=set)
-    callbacks: List[Callable[[Resource], NoReturn]] = field(default_factory=list)
+    callbacks: List[Callable[[Resource], None]] = field(default_factory=list)
 
 
 class ResourceProxy(Resource):
@@ -185,13 +185,13 @@ class ResourceProxy(Resource):
     def __init__(self, target: 'NonAbcResource'):
         self.target = ref(target)
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         target = self.target()
         if target is None:
             return
         await target._release()
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         target = self.target()
         if target is None:
             return
@@ -246,7 +246,7 @@ _light_resources: MutableMapping[NonAbcResource, Resource] = WeakKeyDictionary()
 _resources: MutableMapping[Resource, ResourceState] = WeakKeyDictionary()
 
 
-def _flag_acquired(resource: Resource) -> NoReturn:
+def _flag_acquired(resource: Resource) -> None:
     state = _get_state(resource)
 
     if state.released:
@@ -258,7 +258,7 @@ def _flag_acquired(resource: Resource) -> NoReturn:
     state.acquired += 1
 
 
-def _mark_incorrectly_released(resource: Resource) -> NoReturn:
+def _mark_incorrectly_released(resource: Resource) -> None:
     resource_state = _get_state(resource)
     resource_state.parent_dead = True
 
@@ -300,7 +300,7 @@ def _call_release_cbs(resource: Resource):
         cb(resource)
 
 
-def on_release(resource: ResourceTarget, callback: Callable[[Resource], NoReturn]) -> NoReturn:
+def on_release(resource: ResourceTarget, callback: Callable[[Resource], None]) -> None:
     """
     Adds a callback that is called when the resource is about to be released.
 
@@ -312,7 +312,7 @@ def on_release(resource: ResourceTarget, callback: Callable[[Resource], NoReturn
     _get_state(resource).callbacks.append(callback)
 
 
-def remove_callback(resource: ResourceTarget, callback: Callable[[Resource], NoReturn]) -> NoReturn:
+def remove_callback(resource: ResourceTarget, callback: Callable[[Resource], None]) -> None:
     """
     Removes the callback from the callback list.
 

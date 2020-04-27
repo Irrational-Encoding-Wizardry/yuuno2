@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from asyncio import gather
-from typing import Mapping, Union, NoReturn
+from typing import Mapping, Union, None
 
 from yuuno2.clip import Clip, Frame
 from yuuno2.format import RawFormat, Size, ColorFamily
@@ -83,12 +83,12 @@ class AlphaFrame(Frame):
         metadata.update(md_main)
         return metadata
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         await gather(self.main.acquire(), self.alpha.acquire())
         register(self.main, self)
         register(self.alpha, self)
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         await gather(self.main.release(force=False), self.alpha.release(force=False))
         self.main = None
         self.alpha = None
@@ -109,12 +109,12 @@ class AlphaClip(Clip):
         metadata.update(md_main)
         return metadata
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         await gather(self.main.acquire(), self.alpha.acquire())
         register(self.main, self)
         register(self.alpha, self)
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         await gather(self.main.release(force=False), self.alpha.release(force=False))
         self.main = None
         self.alpha = None

@@ -1,5 +1,5 @@
 import json
-from typing import Union, NoReturn, Optional
+from typing import Union, None, Optional
 
 from tornado.websocket import WebSocketHandler
 

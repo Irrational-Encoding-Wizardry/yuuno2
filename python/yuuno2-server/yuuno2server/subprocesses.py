@@ -1,7 +1,7 @@
 import asyncio
 import os
 import sys
-from typing import Optional, NoReturn, Mapping, Union, Any, Sequence
+from typing import Optional, None, Mapping, Union, Any, Sequence
 from asyncio import SubprocessProtocol, SubprocessTransport, AbstractEventLoop, get_running_loop
 
 from yuuno2.clip import Clip
@@ -132,13 +132,13 @@ class SubprocessScript(Script):
         self.event_loop = event_loop
         self._script: Optional[RemoteScript] = None
 
-    def activate(self) -> NoReturn:
+    def activate(self) -> None:
         pass
 
-    def deactivate(self) -> NoReturn:
+    def deactivate(self) -> None:
         pass
 
-    async def set_config(self, key: str, value: ConfigTypes) -> NoReturn:
+    async def set_config(self, key: str, value: ConfigTypes) -> None:
         await self.ensure_acquired()
         await self._script.set_config(key, value)
 
@@ -158,7 +158,7 @@ class SubprocessScript(Script):
         await self.ensure_acquired()
         return await self._script.retrieve_clips()
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         self._transport, self._connection = await self.create_subprocess(self.provider, self.event_loop, loop=self.loop)
         await self._connection.acquire()
         register(self._connection, self)
@@ -167,7 +167,7 @@ class SubprocessScript(Script):
         await self._script.acquire()
         register(self._script, self)
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         self._transport.get_pipe_transport(0).close()
         while not self._transport.is_closing():
             await asyncio.sleep(0.1)

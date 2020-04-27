@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from typing import Union, TypeVar
+from typing import Union, TypeVar, Mapping, Sequence, Any
 
 
 T = TypeVar("T")
@@ -24,3 +24,6 @@ T = TypeVar("T")
 
 Buffer = Union[bytearray, memoryview]
 ConfigTypes = Union[bytes, str, int, float, None]
+
+JSONValue = Union[str, int, float, bool, None, Mapping[str, 'JSONValue'], Sequence['JSONValue']]
+JSON = Union[Mapping[str, JSONValue], Sequence[JSONValue]]

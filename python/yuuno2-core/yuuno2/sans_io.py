@@ -19,7 +19,7 @@
 import functools
 from types import new_class
 from collections import deque
-from typing import NoReturn, Coroutine, TypeVar, Generic, Optional, Iterator, Any, Callable, Type, Awaitable
+from typing import None, Coroutine, TypeVar, Generic, Optional, Iterator, Any, Callable, Type, Awaitable
 
 
 class Buffer(object):
@@ -102,7 +102,7 @@ class Buffer(object):
 
         return self._read(length)
 
-    def feed(self, data: Optional[bytes]) -> NoReturn:
+    def feed(self, data: Optional[bytes]) -> None:
         if self._closed:
             if data is None:
                 return
@@ -119,7 +119,7 @@ class Buffer(object):
         self._buffer.append(data)
         self._size += len(data)
 
-    def close(self) -> NoReturn:
+    def close(self) -> None:
         self._closed = True
 
     @property

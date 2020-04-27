@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from abc import ABC, abstractmethod
-from typing import NoReturn, Type, Tuple, Callable, Dict, List
+from typing import None, Type, Tuple, Callable, Dict, List
 
 from yuuno2.networking.base import Connection
 from yuuno2.networking.multiplex import Multiplexer
@@ -65,7 +65,7 @@ class Multiplexed(Resource, ABC):
     def create_endpoint(self, connection: Connection) -> Resource:
         pass
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         await self.connection.acquire()
         register(self.connection, self)
 
@@ -80,7 +80,7 @@ class Multiplexed(Resource, ABC):
         register(self, self._control)
         await self._control.acquire()
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         await self.connection.release(force=False)
 
 

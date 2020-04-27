@@ -16,7 +16,7 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from typing import NoReturn, Mapping, Union, Any, Sequence, Iterator, Optional
+from typing import None, Mapping, Union, Any, Sequence, Iterator, Optional
 
 from yuuno2.clip import Clip
 from yuuno2.clips.remote import RemoteClip
@@ -35,13 +35,13 @@ class LazyClip(RemoteClip):
         self._clip = clip
         self._channel_name = f"clip:{id(self)}"
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
 
         await self._remote._client.register_clip(channel=self._channel_name, name=self._clip)
         self.connection = self._remote._multiplexer.connect(self._channel_name)
         await super()._acquire()
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         await self._remote._client.unregister_clip(channel=self._channel_name)
         await super()._release()
 
@@ -81,15 +81,15 @@ class RemoteScript(Script, MultiplexedClient):
     def create_client(self, connection: Connection) -> ReqRespClient:
         return RemoteScriptClient(connection)
 
-    def activate(self) -> NoReturn:
+    def activate(self) -> None:
         # Ignored.
         pass
 
-    def deactivate(self) -> NoReturn:
+    def deactivate(self) -> None:
         # Ignored
         pass
 
-    async def set_config(self, key: str, value: ConfigTypes) -> NoReturn:
+    async def set_config(self, key: str, value: ConfigTypes) -> None:
         cls = type(value)
         typename, send = TYPE_MAP_SEND[cls]
         converted, bufs = send(value)
@@ -129,12 +129,12 @@ class LazyRemoteScript(RemoteScript):
         self._params = params
         self._script_name = f"script:{id(self)}"
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         await self._remote._client.create_script(channel_name=self._script_name, params=self._params)
         self.connection = self._remote._multiplexer.connect(self._script_name)
         return (await super()._acquire())
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         await self._remote._client.release_script(channel_name=self._script_name)
         return (await super()._release())
 

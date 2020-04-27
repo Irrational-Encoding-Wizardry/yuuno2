@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import types
-from typing import NoReturn, Mapping, Union, Any, Sequence
+from typing import None, Mapping, Union, Any, Sequence
 
 from vapoursynth import Environment, vpy_current_environment
 from vapoursynth import get_outputs, get_core, Core
@@ -36,13 +36,13 @@ class VapourSynthScript(Script):
         self.config = {}
         self.environment = environment
 
-    def activate(self) -> NoReturn:
+    def activate(self) -> None:
         self.environment.__enter__()
 
-    def deactivate(self) -> NoReturn:
+    def deactivate(self) -> None:
         self.environment.__exit__(None, None, None)
 
-    async def set_config(self, key: str, value: ConfigTypes) -> NoReturn:
+    async def set_config(self, key: str, value: ConfigTypes) -> None:
         await self.ensure_acquired()
         self.config[key] = value
         if key.startswith('vs.core.'):
@@ -72,7 +72,7 @@ class VapourSynthScript(Script):
             outputs = get_outputs().items()
         return {str(k): VapourSynthClip(self, d) for k, d in outputs}
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         with self.environment:
             core: Core = get_core()
             self.config.update({
@@ -85,10 +85,10 @@ class VapourSynthScript(Script):
                 'vs.default_yuv_matrix':   '702',
             })
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         pass
 
-    async def ensure_acquired(self) -> NoReturn:
+    async def ensure_acquired(self) -> None:
         if not self.environment.alive:
             await self.release()
             raise EnvironmentError("Environment has been destroyed.")

@@ -1,7 +1,7 @@
 import asyncio
 import os
 import sys
-from typing import NoReturn, Mapping, Union, Any, Sequence
+from typing import None, Mapping, Union, Any, Sequence
 
 import aiorun
 
@@ -25,13 +25,13 @@ class LocalScript(Script):
     def __init__(self, parent: Script):
         self.parent = parent
 
-    def activate(self) -> NoReturn:
+    def activate(self) -> None:
         self.parent.activate()
 
-    def deactivate(self) -> NoReturn:
+    def deactivate(self) -> None:
         self.parent.deactivate()
 
-    async def set_config(self, key: str, value: ConfigTypes) -> NoReturn:
+    async def set_config(self, key: str, value: ConfigTypes) -> None:
         full_key = key
 
         if key.startswith("subprocess."):
@@ -89,11 +89,11 @@ class LocalScript(Script):
     async def retrieve_clips(self) -> Mapping[str, Clip]:
         return await self.parent.retrieve_clips()
 
-    async def _acquire(self) -> NoReturn:
+    async def _acquire(self) -> None:
         await self.parent.acquire()
         register(self.parent, self)
 
-    async def _release(self) -> NoReturn:
+    async def _release(self) -> None:
         await self.parent.release(force=False)
 
 
