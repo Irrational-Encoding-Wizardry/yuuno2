@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from abc import abstractmethod, ABC
-from typing import Mapping, Union
+from typing import Mapping, Union, Optional
 
 from yuuno2.typings import Buffer
 from yuuno2.format import Size, RawFormat, RGB24
@@ -105,3 +105,9 @@ class Clip(Resource, MetadataContainer, ABC):
 
     def __getitem__(self, item) -> Frame:
         raise NotImplementedError
+
+    async def resize(self, size: Size) -> Optional['Clip']:
+        """
+        Returns a new clip that is resized to the desired size.
+        """
+        return None

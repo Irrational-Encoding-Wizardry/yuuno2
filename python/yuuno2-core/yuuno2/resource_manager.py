@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Yuuno - IPython + VapourSynth
-# Copyright (C) 2019 StuxCrystal (Roland Netzsch <stuxcrystal@encode.moe>)
+# Copyright (C) 2019,2020 StuxCrystal (Roland Netzsch <stuxcrystal@encode.moe>)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -20,12 +20,11 @@
 This class manages asynchronous resource management.
 """
 
-from _weakref import ref
-from _weakrefset import WeakSet
-from typing import Set, MutableMapping, Optional, Callable, List, Union
-from dataclasses import dataclass, field
 from abc import ABC, abstractmethod
-from weakref import WeakKeyDictionary
+from functools import wraps
+from dataclasses import dataclass, field
+from weakref import WeakKeyDictionary, ref, WeakSet
+from typing import Set, MutableMapping, Optional, Callable, List, Union
 
 
 class Resource(ABC):
@@ -148,6 +147,10 @@ class Resource(ABC):
 
         if await self._release_deferred():
             raise AssertionError("Parent resource incorrectly released.")
+
+    def ensure_acquired_sync(self) -> None:
+        if not self.acquired:
+            raise AssertionError("Resource not acquired.")
 
     def __del__(self):
         if self.acquired:
@@ -299,17 +302,28 @@ def _call_release_cbs(resource: Resource):
     for cb in state.callbacks:
         cb(resource)
 
+    state.callbacks.clear()
+
 
 def on_release(resource: ResourceTarget, callback: Callable[[Resource], None]) -> None:
     """
     Adds a callback that is called when the resource is about to be released.
 
-    If the object is incorrectly released
+    If the object is incorrectly released, the callbacks will be run on detection
+    of the release.
+
+    The function will automatically be called in-line if the target resource
+    has already been released.
 
     :param resource: The resource to attach to.
     :param callback: The callback to run.
     """
-    _get_state(resource).callbacks.append(callback)
+    state = _get_state(resource)
+    if state.released or state.parent_dead:
+        callback(resource)
+        return
+
+    state.callbacks.append(callback)
 
 
 def remove_callback(resource: ResourceTarget, callback: Callable[[Resource], None]) -> None:
@@ -338,3 +352,55 @@ async def _release_children(resource: Resource):
 
     for child in list(state.children):
         await child.release()
+
+
+class SimpleResource(Resource):
+    __slots__ = ["obj", "on_acquire"]
+
+    def __init__(self, obj, on_acquire=None):
+        self.on_acquire = on_acquire
+        self.obj = obj
+
+    @classmethod
+    def callbacks(cls, acq, rel, *, obj=None) -> 'SimpleResource':
+        obj = cls(obj, acq)
+        on_release(obj, lambda _: rel(obj))
+        return obj
+
+    @classmethod
+    def decorator(cls, func):
+        @wraps(func)
+        def _wrapper(*args, **kwargs):
+            gen = func(*args, **kwargs)
+            return cls.from_generator(gen)
+        return _wrapper
+
+    @classmethod
+    def from_generator(cls, gen, obj=None):
+        def _acq(self):
+            gen.send(None)
+        def _rel(self):
+            try:
+                gen.send(None)
+            except StopIteration:
+                pass
+        return cls.callbacks(_acq, _rel, obj=obj)
+
+    @classmethod
+    def from_contextmanager(cls, ctx):
+        return cls.callbacks(lambda _: ctx.__enter__(), lambda _: ctx.__exit__(None, None, None), obj=ctx)
+
+    def __call__(self):
+        self.ensure_acquired_sync()
+        return self.obj
+
+    async def _acquire(self):
+        if self.on_acquire is not None:
+            self.on_acquire(self.obj)
+        self.on_acquire = None
+
+    async def _release(self):
+        self.obj = None
+
+    def __repr__(self):
+        return f"<SimpleResource wrapping {self.obj!r}>"

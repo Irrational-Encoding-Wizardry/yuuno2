@@ -80,9 +80,10 @@ class VapourSynthScript(Script):
                 'vs.core.num_threads':     core.num_threads,
                 'vs.core.max_cache_size':  core.max_cache_size,
 
+                'vs.resizer':              'resize.Spline36',
                 'vs.chroma_resizer':       'resize.Spline36',
                 'vs.override_yuv_matrix':  False,
-                'vs.default_yuv_matrix':   '702',
+                'vs.default_yuv_matrix':   '709',
             })
 
     async def _release(self) -> None:

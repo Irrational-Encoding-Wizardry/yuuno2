@@ -17,7 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from asyncio import gather
-from typing import Mapping, Union, 
+from typing import Mapping, Union
 
 from yuuno2.clip import Clip, Frame
 from yuuno2.format import RawFormat, Size, ColorFamily
@@ -102,6 +102,9 @@ class AlphaClip(Clip):
 
     def __getitem__(self, item) -> Frame:
         return AlphaFrame(self.main[item], self.alpha[item])
+
+    async def resize(self, size: Size) -> 'AlphaClip':
+        return AlphaClip(await self.main.resize(size), await self.alpha.resize(size))
 
     async def get_metadata(self) -> Mapping[str, Union[int, str, bytes]]:
         md_main, md_alpha = await gather(self.main.get_metadata(), self.alpha.get_metadata())

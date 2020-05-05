@@ -17,6 +17,7 @@
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import weakref
+from functools import reduce
 from asyncio import ensure_future, wrap_future, gather
 from typing import Mapping, Union, Optional, Awaitable
 
@@ -34,16 +35,22 @@ from yuuno2.script import Script
 ConfigMapping = Mapping[str, ConfigTypes]
 _config_cache = weakref.WeakKeyDictionary()
 DEFAULT_CONFIGURATION = {
-    'chroma_resizer':      'resize.Spline36',
+    'resizer': 'resize.Spline36',
+    'chroma_resizer': 'resize.Spline36',
     'override_yuv_matrix': False,
-    'default_yuv_matrix':  '702',
+    'default_yuv_matrix':  '709',
+}
+CONVERTERS = {
+    "resizer": lambda v: reduce(lambda a, b: getattr(a, b), v.split("."), vs.core),
+    "chroma_resizer": lambda v: reduce(lambda a, b: getattr(a, b), v.split("."), vs.core)
 }
 
 
 async def get_configuration(script: Script) -> ConfigMapping:
     config = [[k, ensure_future(script.get_config("vs." + k, d))] for k, d in DEFAULT_CONFIGURATION.items()]
     await gather(*(d for k, d in config))
-    return {k: (d.result()) for k, d in config}
+    with script.inside():
+        return {k: CONVERTERS.get(k, lambda v: v)(d.result()) for k, d in config}
 
 
 def get_frame_async(node: VideoNode, frame: int) -> Awaitable[VideoFrame]:
@@ -130,6 +137,7 @@ class VapourSynthFrame(Frame):
 
         samples = SampleType.INTEGER if ff.sample_type==vs.INTEGER else SampleType.FLOAT
         return RawFormat(
+            type="video",
             sample_type=samples,
             family=fam,
             fields=fam.simple_fields,
@@ -182,9 +190,6 @@ class VapourSynthFrame(Frame):
     def _convert(self, format: RawFormat, config) -> VideoNode:
         if format == self.native_format:
             return self._raw_node
-
-        namespace, filter = config['chroma_resizer'].split(".", 2)
-        config['chroma_resizer'] = getattr(getattr(core, namespace), filter)
 
         if not format.planar:
             return self._convert_compat(format, config)
@@ -243,11 +248,17 @@ class VapourSynthFrame(Frame):
             bits_per_sample= format.bits_per_sample,
             sample_type    = (vs.INTEGER if format.sample_type == SampleType.INTEGER else vs.FLOAT)
         )
+        params = {
+            'format': target,
+        }
+        if self._raw_frame.format.color_family not in (vs.YUV, vs.YCOCG):
+            params.update(
+                matrix_s = config['default_yuv_matrix']
+            )
+
         return config['resizer'](
             self._raw_node,
-            format=target,
-            matrix_in_s=config['default_yuv_matrix'],
-            prefer_props=config['override_yuv_matrix']
+            **params
         )
 
     async def get_metadata(self) -> Mapping[str, Union[int, str, bytes]]:
@@ -277,6 +288,16 @@ class _VapourSynthClip(Clip):
 
     def __getitem__(self, frameno):
         return VapourSynthFrame(self.script, self, frameno)
+
+    async def resize(self, size: Size) -> Clip:
+        config = dict(await get_configuration(self.script))
+        with self.script.inside():
+            new_clip = config['resizer'](
+                clip=self.clip,
+                width=size.width,
+                height=size.height
+            )
+            return _VapourSynthClip(self.script, new_clip)
 
     async def get_metadata(self) -> Mapping[str, Union[int, str, bytes]]:
         return {}

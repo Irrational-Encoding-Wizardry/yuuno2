@@ -14,7 +14,7 @@ def _boot():
     _set_thread(yuuno_thread)
 
 def _shutdown():
-    get_yuuno_thread().close_and_wait(t)
+    get_yuuno_thread().close_and_wait(5)
     _set_thread(None)
 
 

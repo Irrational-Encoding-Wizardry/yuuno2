@@ -34,6 +34,7 @@ from concurrent.futures import Future as TFuture
 
 
 yuuno_main_loop: Optional[AbstractEventLoop] = None
+_current_detector = None
 
 
 async def __call_on_close(cb):
@@ -47,9 +48,12 @@ async def __call_on_close(cb):
         cb()
 
 async def _kill_detector():
+    current_loop = yuuno_main_loop
     def on_close():
         global yuuno_main_loop
-        yuuno_main_loop = None
+        if yuuno_main_loop is current_loop:
+            yuuno_main_loop = None
+            _current_detector = None
     
     # This iterator will never yield any values.
     async for _ in __call_on_close(on_close):
@@ -57,13 +61,18 @@ async def _kill_detector():
 
 
 def register_event_loop(event_loop: AbstractEventLoop) -> None:
-    global yuuno_main_loop
+    global yuuno_main_loop, _current_detector
     if yuuno_main_loop is not None:
         raise RuntimeError("There is already an event-loop for yuuno running.")
 
     yuuno_main_loop = event_loop
-    run_coroutine_threadsafe(_kill_detector(), loop=yuuno_main_loop)
+    _current_detector = run_coroutine_threadsafe(_kill_detector(), loop=yuuno_main_loop)
 
+def clear_event_loop():
+    global yuuno_main_loop, _current_detector
+    if _current_detector is not None:
+        _current_detector.cancel()
+    yuuno_main_loop = None
 
 def get_yuuno_loop() -> AbstractEventLoop:
     global yuuno_main_loop
@@ -196,7 +205,9 @@ class YuunoThread(Thread):
 # Coroutines based stuff.
 from asyncio import get_running_loop, ensure_future, Future, wait, FIRST_COMPLETED
 from asyncio import CancelledError, TimeoutError
-from typing import TypeVar, Awaitable, Any, Union, 
+from asyncio import iscoroutine
+from typing import TypeVar, Awaitable, Any, Union 
+from functools import wraps
 
 async def suppress_cancel(future: 'Future[Any]') -> None:
     try:
@@ -239,3 +250,14 @@ async def race_first(a: Awaitable[T], b: Awaitable[V]) -> Union[T, V]:
         f_a.cancel()
         return f_b.result()
 
+
+def coroutine(cb):
+    @wraps(cb)
+    async def _wrapper(*args, **kwargs):
+        result = cb(*args, **kwargs)
+
+        if iscoroutine(result):
+            result = await result
+
+        return result
+    return _wrapper

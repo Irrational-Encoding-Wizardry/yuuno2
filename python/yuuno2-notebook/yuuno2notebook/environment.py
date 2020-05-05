@@ -9,6 +9,7 @@ from yuuno2notebook.control import ControlMagics
 from yuuno2notebook.debug import DebugMagics
 from yuuno2notebook.runvpy import RunVpyMagics
 from yuuno2notebook.utils import run_in_main_thread
+from yuuno2notebook.renderers.formatter import Formatter
 
 
 class Yuuno2Notebook(SingletonConfigurable, NonAbcResource):
@@ -46,8 +47,13 @@ class Yuuno2Notebook(SingletonConfigurable, NonAbcResource):
         register(self, self.provider)
         await self.create_new_core()
 
+        # Display-Formatters
+        formatter = Formatter(self)
+        await formatter.acquire()
+        register(self, formatter)
+
         # Push variables of core.
-        await run_in_main_thread(self.shell.push, {'vapoursynth': vapoursynth, 'core': vapoursynth.core})
+        await run_in_main_thread(self.shell.push, {'vs': vapoursynth, 'vapoursynth': vapoursynth, 'core': vapoursynth.core})
 
         # Basic core configuration business
         control = ControlMagics(env=self)

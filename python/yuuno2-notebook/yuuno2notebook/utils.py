@@ -18,7 +18,11 @@ def _set_thread(thr_inst: Optional[YuunoThread]):
     if thr is not None and thr_inst is not None:
         raise RuntimeError("Yuuno is already running.")
 
-    main_thread_loop = get_running_loop()
+    try:
+        main_thread_loop = get_running_loop()
+    except RuntimeError:
+        main_thread_loop = None
+
     thr = thr_inst
 
 def get_yuuno_thread() -> YuunoThread:
