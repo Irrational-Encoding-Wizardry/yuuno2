@@ -2,7 +2,7 @@
 # -*- coding: utf-8 -*-
 
 # Yuuno - IPython + VapourSynth
-# Copyright (C) 2019 StuxCrystal (Roland Netzsch <stuxcrystal@encode.moe>)
+# Copyright (C) 2020 StuxCrystal (Roland Netzsch <stuxcrystal@encode.moe>)
 #
 # This program is free software: you can redistribute it and/or modify
 # it under the terms of the GNU Lesser General Public License as published by
@@ -16,205 +16,221 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from asyncio import gather
-from typing import Optional, Union, List, Mapping
+import uuid
+import asyncio
+from typing import Optional
 
-from yuuno2.clip import Clip, MetadataContainer, Frame
+from yuuno2.clip import Clip, Frame
 from yuuno2.format import RawFormat, Size
-from yuuno2.networking.base import Connection, Message
-from yuuno2.networking.reqresp import ReqRespServer, ReqRespClient, function
-from yuuno2.resource_manager import register
-from yuuno2.typings import Buffer
+from yuuno2.resource_manager import Resource, register
+
+from yuuno2.networking.message import Message
+from yuuno2.networking.rpc import Server, Client, RPCProxy
+from yuuno2.networking.connection import BaseConnection
+from yuuno2.networking.manager import RemoteManager
 
 
-class ClipServer(ReqRespServer):
+class ClipWrapper(Resource):
 
-    def __init__(self, clip: Clip, parent: Connection):
+    def __init__(self, clip: Clip):
         self.clip = clip
-        super().__init__(parent)
+
+    async def on_length(self) -> Message:
+        await self.ensure_acquired()
+        return Message({"length": len(self.clip)})
+
+    async def on_format(self, frameno: int) -> Message:
+        await self.ensure_acquired()
+        async with self.clip[frameno] as frame:
+            return Message({
+                "format": frame.native_format.to_json()
+            })
+
+    async def on_size(self, frameno: int) -> Message:
+        await self.ensure_acquired()
+        async with self.clip[frameno] as frame:
+            return Message({
+                "width": frame.size.width,
+                "height": frame.size.height
+            })
+
+    async def on_metadata(self, frameno: int=None):
+        await self.ensure_acquired()
+        if frameno is None:
+            return Message({
+                "metadata": await self.clip.get_metadata()
+            })
+        else:
+            async with self.clip[frameno] as frame:
+                return Message({
+                    "metadata": await frame.get_metadata()
+                })
+
+    async def on_can_render(self, frameno: int, format, size=None) -> Message:
+        await self.ensure_acquired()
+
+        clip = self.clip
+        if size is not None:
+            clip = await clip.resize(Size(size["width"], size["height"]))
+
+        async with clip:
+            format = RawFormat.from_json(format)
+            async with clip[frameno] as frame:
+                return Message({
+                    "supported": await frame.can_render(format)
+                })
+
+    async def on_render(self, frameno: int, planes, format=None, size=None) -> Message:
+        await self.ensure_acquired()
+
+        clip = self.clip
+        if size is not None:
+            clip = await clip.resize(Size(size["width"], size["height"]))
+
+        async with clip:
+            if format is not None:
+                format = RawFormat.from_json(format)
+            else:
+                format = clip.native_format
+
+            if isinstance(planes, int):
+                planes = [planes]
+
+            async with clip[frameno] as frame:
+                if not await frame.can_render(format):
+                    return Message({
+                        "success": False
+                    })
+                planes = [bytearray(format.get_plane_size(plane, frame.size)) for plane in planes]
+                await asyncio.gather(*(frame.render_into(plane, idx, format) for plane, idx in enumerate(planes)))
+                return Message({
+                    "success": True
+                }, planes)
 
     async def _acquire(self):
-        await super()._acquire()
-
         await self.clip.acquire()
         register(self.clip, self)
 
     async def _release(self):
         await self.clip.release(force=False)
-        await super()._release()
 
-    async def on_metadata(self, frame: Optional[int] = None) -> Message:
-        mc: MetadataContainer = self.clip if frame is None else self.clip[frame]
-        async with mc:
-            metadata = await mc.get_metadata()
-        return Message(metadata, [])
+    @classmethod
+    async def on_manager(cls, clip: Clip, manager: Server, *, name: Optional[str]=None) -> 'ClipWrapper':
+        if name is None:
+            name = str(uuid.uuid4())
 
-    async def on_length(self) -> Message:
-        return Message({'length': len(self.clip)})
+        wrapper = cls(clip)
 
-    # noinspection PyTypeChecker
-    async def on_size(self, frame: int) -> Message:
-        frame_inst = self.clip[frame]
-        async with frame_inst:
-            sz = frame_inst.size
-            return Message(
-                [sz.width, sz.height]
-            )
+        registration = manager.register(name, wrapper)
+        register(wrapper, registration)
 
-    async def on_format(self, frame: int) -> Message:
-        frame_inst = self.clip[frame]
-        async with frame_inst:
-            return Message(
-                frame_inst.native_format.to_json()
-            )
-
-    async def on_render(
-            self,
-            frame: int,
-            format: Optional[list] = None,
-            planes: Optional[Union[List[int], int]] = None
-    ) -> Message:
-        frame_inst = self.clip[frame]
-        async with frame_inst:
-            if planes is None:
-                return Message({'size': list(frame_inst.size)}, [])
-
-            format: RawFormat = RawFormat.from_json(format)
-            if not (await frame_inst.can_render(format)):
-                return Message({'size': None})
-
-            if not isinstance(planes, (list, tuple)):
-                planes: List[int] = [planes]
-
-            buffers = [
-                bytearray(format.get_plane_size(p, frame_inst.size))
-                for p in planes
-            ]
-            used_buffers = await gather(*(
-                frame_inst.render_into(buf, p, format, 0)
-                for p, buf in enumerate(buffers)
-            ))
-            return Message(
-                {'size': list(frame_inst.size)},
-                [buf[:sz] for buf, sz in zip(buffers, used_buffers)]
-            )
-
-
-class ClipClient(ReqRespClient):
-    render = function()
-    metadata = function()
-
-    size = function()
-    format = function()
-    length = function()
+        return wrapper
 
 
 class RemoteFrame(Frame):
 
-    def __init__(self, frame: int, clip: 'RemoteClip', client: ClipClient):
-        self.frame = frame
-        self.remote_clip = clip
-        self.client = client
-
-        self._native_format = None
-        self._size = None
-
-    async def _acquire(self) -> None:
-        await self.remote_clip.acquire()
-        await self.client.acquire()
-
-        register(self.remote_clip, self)
-        register(self.client, self)
-
-        msg_sz, msg_format = await gather(
-            self.client.size(frame=self.frame),
-            self.client.format(frame=self.frame)
-        )
-        self._size = Size(*msg_sz.values)
-        self._native_format = RawFormat.from_json(msg_format.values)
-
-    async def _release(self) -> None:
-        await self.remote_clip.release(force=False)
-        await self.client.release(force=False)
-        self.remote_clip = None
-        self.client = None
+    def __init__(self, rpc: RPCProxy, frameno: int, size: Optional[Size]=None):
+        self.rpc = rpc
+        self.frameno = frameno
+        self._resized_sz = size
+        self.__size = size
+        self.__format = format
+    
+    @property
+    def size(self) -> Size:
+        self.ensure_acquired_sync()
+        if self._resized_sz is not None:
+            return self._resized_sz
+        return self.__size
 
     @property
     def native_format(self) -> RawFormat:
-        return self._native_format
+        self.ensure_acquired_sync()
+        return self.__format
 
     @property
-    def size(self) -> Size:
-        return self._size
+    def _resized_sz_json(self):
+        if self._resized_sz is None:
+            return None
+        return {
+            "width": self._resized_sz.width,
+            "height": self._resized_sz.height
+        }
 
-    async def can_render(self, format: RawFormat) -> bool:
+    async def get_metadata(self):
         await self.ensure_acquired()
+        msg = await self.rpc.on_metadata(frameno=None)
+        return msg.data["metadata"]
 
-        f_json = format.to_json()
-        response: Message = await self.client.render(
-            frame=self.frame,
-            format=f_json,
-            planes=[]
-        )
-        return response.values['size'] is not None
-
-    async def render_into(self, buffer: Buffer, plane: int, format: RawFormat, offset: int = 0) -> int:
+    async def can_render(self, format):
         await self.ensure_acquired()
+        msg = await self.rpc.can_render(frameno=self.frameno, format=format.to_json, size=self._resized_sz_json)
+        return msg.data["supported"]
 
-        f_json = format.to_json()
-        response: Message = await self.client.render(
-            frame=self.frame,
-            format=f_json,
-            planes=[plane]
-        )
-        if response.values['size'] is None:
-            raise ValueError("Unsupported format.")
+    async def render_into(self, buffer, plane, format, offset=0) -> int:
+        rendered = await self.rpc.render(self.frameno, planes=[plane], format=format.to_json, size=self._resized_sz_json)
+        if not rendered.data["success"]:
+            raise ValueError("Failed to render.")
+        length = rendered.blobs[0]
+        if len(length) > len(buffer)+offset:
+            raise BufferError("Buffer not large enough.")
+        buffer[offset:length+offset] = rendered.blobs[0]
+        return length
 
-        buf_sz = len(response.blobs[0])
-        buffer[:buf_sz] = response.blobs[0]
-        return buf_sz
+    async def _acquire(self):
+        await self.rpc.acquire()
+        register(self.rpc, self)
 
-    async def get_metadata(self) -> Mapping[str, Union[int, str, bytes]]:
-        await self.ensure_acquired()
+        size, format = await asyncio.gather(self.rpc.size(frameno=self.frameno), self.rpc.format(frameno=self.frameno))
+        self.__size = Size(width=size.data["width"], height=size.data["height"])
+        self.__format = RawFormat.from_json(format.data["format"])
 
-        response: Message = await self.client.metadata(
-            frame=self.frame
-        )
-        return response.values
+    async def _release(self):
+        await self.rpc.release(force=False)
 
 
 class RemoteClip(Clip):
-    def __init__(self, connection: Connection):
-        self.connection = connection
-        self._client = None
-        self._sz = None
 
-    def __getitem__(self, item) -> Frame:
-        if 0 > item or item >= len(self):
-            raise IndexError("Clip index out of range.")
+    def __init__(self, rpc: RPCProxy, size: Optional[Size] = None):
+        self.rpc = rpc
+        self.size = size
 
-        return RemoteFrame(item, self, self._client)
+        self.__length = None
 
     def __len__(self):
-        if not self.acquired:
-            raise RuntimeError("Clip not acquired.")
-        return self._sz
+        self.ensure_acquired_sync()
+        return self.__length
 
-    async def _acquire(self) -> None:
-        await self.connection.acquire()
-        register(self.connection, self)
-
-        self._client = ClipClient(self.connection)
-        await self._client.acquire()
-        register(self, self._client)
-
-        msg: Message = await self._client.length()
-        self._sz = msg.values['length']
-
-    async def _release(self) -> None:
-        await self.connection.release(force=False)
-
-    async def get_metadata(self) -> Mapping[str, Union[int, str, bytes]]:
+    def __getitem__(self, frameno):
+        self.ensure_acquired_sync()
+        return RemoteFrame(self.rpc, frameno, size)
+    
+    async def get_metadata(self):
         await self.ensure_acquired()
-        msg: Message = await self._client.metadata()
-        return msg.values
+        msg = await self.rpc.on_metadata(frameno=None)
+        return msg.data["metadata"]
+
+    async def resize(self, size: Size):
+        return RemoteClip(rpc, size)
+
+    async def _acquire(self):
+        await self.rpc.acquire()
+        register(self.rpc, self)
+
+        msg: Message = await self.rpc.length()
+        self.__length = msg.data["length"]
+
+    async def _release(self):
+        await self.rpc.release(force=False)
+
+    @classmethod
+    async def from_client(cls, client: Client, name: str):
+        clip = cls(await client.get(name))
+        register(client, clip)
+        return clip
+
+    @classmethod
+    async def from_manager(cls, manager: RemoteManager, name: str):
+        clip = cls(await manager.get(name))
+        register(manager, clip)
+        return clip

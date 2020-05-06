@@ -5,6 +5,7 @@ from yuuno2.vapoursynth.clip import VapourSynthClip
 
 from yuuno2notebook.utils import delay_call, run_in_main_thread
 from yuuno2notebook.renderers.text import ClipDisplay as TextRenderer
+from yuuno2notebook.renderers.image import ClipDisplay as ImageRenderer
 
 
 class MimeBundle:
@@ -20,6 +21,10 @@ class MimeBundle:
 
 
 class Formatter(Resource):
+    MIMES = {
+        "text/plain": TextRenderer,
+        "image/png": ImageRenderer
+    }
 
     @property
     def _supported_types(self):
@@ -37,7 +42,10 @@ class Formatter(Resource):
     async def _display(self, obj):
         bundle = MimeBundle()
         async with VapourSynthClip(obj, script=self.env.current_core) as clip:
-            bundle.add_mime("text/plain", await TextRenderer(clip).display())
+            for mime, renderer in Formatter.MIMES.items():
+                rendered = await renderer(clip).display()
+                if rendered is None: continue
+                bundle.add_mime(mime, rendered)
         return bundle
 
     def _acquire_sync(self):

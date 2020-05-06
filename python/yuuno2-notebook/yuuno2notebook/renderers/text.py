@@ -11,6 +11,9 @@ from yuuno2.format import Size, RawFormat, ColorFamily, SampleType, RGB24, GRAY8
 from yuuno2notebook.utils import delay_call
 
 
+RESERVED_LINE_COUNT = 4
+
+
 def clamp(value, min, max):
     if value < min:
         return min
@@ -50,7 +53,8 @@ class DataRenderer(Renderer):
         return None
 
     def render(self, clip, frame):
-        return f"<Clip width={size.width} height={size.height} {len(self.clip)} frames>"
+        size = frame.size
+        return f"<Clip width={size.width} height={size.height} {len(clip)} frames>"
 
 
 class AsciiRenderer(Renderer):
@@ -65,7 +69,7 @@ class AsciiRenderer(Renderer):
         return GRAY8
 
     def size(self) -> Optional[Size]:
-        return Size(self.target_size.width, self.target_size.height)
+        return Size(self.target_size.width, self.target_size.height-RESERVED_LINE_COUNT)
 
     def render(self, sz_in: Size, plane_g) -> str:
         target_sz = self.target_size
@@ -92,7 +96,7 @@ class SingleLineANSIRenderer(Renderer):
         return RGB24
 
     def size(self) -> Size:
-        return Size(self.terminal.width, self.terminal.height - 4)
+        return Size(self.terminal.width, self.terminal.height - RESERVED_LINE_COUNT)
 
     def render(self, sz_in: Size, plane_r: bytes, plane_g: bytes, plane_b: bytes) -> str:
         target_sz = self.size()
@@ -119,7 +123,7 @@ class MultiLineANSIRenderer(Renderer):
         return RGB24
 
     def size(self) -> Size:
-        return Size(self.terminal.width, (self.terminal.height - 3)*2)
+        return Size(self.terminal.width, (self.terminal.height - RESERVED_LINE_COUNT)*2)
 
     def render(self, sz_in: Size, plane_r: bytes, plane_g: bytes, plane_b: bytes) -> str:
         target_sz = self.size()
@@ -132,7 +136,7 @@ class MultiLineANSIRenderer(Renderer):
         for sy in range(lines):
             oyt = remap(sy*2, 0, target_sz.height, 0, sz_in.height)
             oyb = None
-            if sy+1 < lines:
+            if sy*2+1 < target_sz.height:
                 oyb = remap(sy*2+1, 0, target_sz.height, 0, sz_in.height)
 
             for sx in range(target_sz.width):
@@ -157,11 +161,11 @@ class AutoSz:
 
     @property
     def width(self):
-        return self.get_tsz().columns-5
+        return self.get_tsz().columns
 
     @property
     def height(self):
-        return self.get_tsz().lines-2
+        return self.get_tsz().lines
 
 
 def _get_correct_renderer():
@@ -176,8 +180,10 @@ def _get_correct_renderer():
                 return SingleLineANSIRenderer(term)
         elif can_do_unicode:
             return AsciiRenderer("\u2588@%#*+=-:. ", target_size=AutoSz())
-
-    return AsciiRenderer("@%#*+=-:. ", target_size=AutoSz())
+        else:
+            return AsciiRenderer("@%#*+=-:. ", target_size=AutoSz())
+    else:
+        return DataRenderer()
 renderer = _get_correct_renderer()
 
 
@@ -188,7 +194,10 @@ class ClipDisplay:
 
     async def display(self):
         async with self.clip[0] as frame:
-            if not await frame.can_render(renderer.format()):
+            format = renderer.format()
+            if format is None:
+                return renderer.render(self.clip, frame)
+            elif not await frame.can_render(format):
                 return await self._display_unsupported(frame)
             else:
                 return await self._display_renderable(frame)
@@ -200,10 +209,13 @@ class ClipDisplay:
     async def _display_renderable(self, frame):
         size = frame.size
         desired = renderer.size()
+
         ar_f = size.width/size.height
         ar_d = desired.width/desired.height
-
-        if ar_f < ar_d:
+        
+        if size.width <= desired.width and size.height <= desired.height:
+            factor = 1
+        elif ar_f < ar_d:
             factor = desired.height / size.height
         elif ar_f > ar_d:
             factor = desired.width / size.width
@@ -212,8 +224,7 @@ class ClipDisplay:
         try:
             clip = await self.clip.resize(target)
         except Exception as e:
-            # return await self._display_unsupported(frame)
-            raise
+            return await self._display_unsupported(frame)
 
         async with clip:
             async with clip[0] as frame:

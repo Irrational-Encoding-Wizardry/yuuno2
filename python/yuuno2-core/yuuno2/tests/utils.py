@@ -30,3 +30,17 @@ class timeout_context(object):
 
     async def __aexit__(self, exc_type, exc_val, exc_tb):
         return await wait_for(self.ctm.__aexit__(exc_type, exc_val, exc_type), self.after)
+
+
+class force_release(object):
+
+    def __init__(self, resource):
+        self.resource = resource
+
+    async def __aenter__(self):
+        await self.resource.acquire()
+        return self.resource
+
+    async def __aexit__(self, exc_type, exc_val, exc_tb):
+        if self.resource.acquired:
+            await self.resource.release()

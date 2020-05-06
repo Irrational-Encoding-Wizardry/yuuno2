@@ -1,3 +1,22 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Yuuno - IPython + VapourSynth
+# Copyright (C) 2020 StuxCrystal (Roland Netzsch <stuxcrystal@encode.moe>)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
+import uuid
 import traceback
 from typing import Any, Tuple
 from asyncio import run_coroutine_threadsafe, CancelledError
@@ -57,7 +76,7 @@ class Server(Resource):
             
         obj = self.objects[target]
 
-        func = getattr(obj, f"on_{method}", None)
+        func = getattr(obj, f"on_{method}", getattr(obj, f"handle_unknown_method", None))
         if func is None:
             await self.connection.send(Message({"type": "error", "id": id, "message": "Unknown method."}))
             return
@@ -100,7 +119,7 @@ class RPCProxy(Resource):
             await res.acquire()
             register(self, res)
             fut.add_done_callback(lambda _: get_yuuno_loop().create_task(res.release()))
-            on_release(res, lambda _: fut.set_exception(CancelledError()))
+            on_release(res, lambda _: fut.cancel())
 
             return await fut
 
@@ -114,6 +133,7 @@ class RPCProxy(Resource):
 
 
 class Client(Resource):
+
     def __init__(self, connection: BaseConnection):
         self.connection = connection
         self.requests = {}
@@ -150,7 +170,7 @@ class Client(Resource):
         register(self, proxy)
         return proxy
 
-    async def _call(self, target, method, message):
+    async def _call(self, target, method, message, **addendum):
         id = self.__next_id
 
         fut = get_yuuno_loop().create_future()
@@ -176,7 +196,7 @@ class Client(Resource):
 
     async def _release(self):
         for request in tuple(self.requests.values()):
-            request.set_exception(CancelledError())
+            request.cancel()
         self.requests = {}
         await self.connection.release(force=False)
 

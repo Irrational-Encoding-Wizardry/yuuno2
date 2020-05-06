@@ -28,7 +28,8 @@ readme = history = ""
 requirements = [
     "notebook", "IPython",                                      # IPython is technically part of notebook.
     "yuuno2-core",
-    "blessed"
+    "blessed",
+    "pillow"
 ]
 
 test_requirements = [

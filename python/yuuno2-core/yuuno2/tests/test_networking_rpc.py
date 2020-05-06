@@ -38,7 +38,7 @@ def _with_registered_yuuno(func):
     return _wrapper
 
 
-class TestObject:
+class StatTestObject:
 
     def __init__(self):
         self.last_call = None
@@ -76,7 +76,7 @@ class TestServer(AsyncTestCase):
             nonlocal last_receive
             last_receive = message
 
-        target = TestObject()
+        target = StatTestObject()
 
         mb1 = MessageBus()
         mb2 = MessageBus()
@@ -99,7 +99,7 @@ class TestServer(AsyncTestCase):
             nonlocal last_receive
             last_receive = message
 
-        target = TestObject()
+        target = StatTestObject()
 
         mb1 = MessageBus()
         mb2 = MessageBus()
@@ -122,7 +122,7 @@ class TestServer(AsyncTestCase):
             nonlocal last_receive
             last_receive = message
 
-        target = TestObject()
+        target = StatTestObject()
 
         mb1 = MessageBus()
         mb2 = MessageBus()
@@ -142,7 +142,7 @@ class TestClient(AsyncTestCase):
 
     @_with_registered_yuuno
     async def test_client_proxy_sync(self):
-        target = TestObject()
+        target = StatTestObject()
 
         mb1 = MessageBus()
         mb2 = MessageBus()
@@ -159,7 +159,7 @@ class TestClient(AsyncTestCase):
 
     @_with_registered_yuuno
     async def test_client_proxy(self):
-        target = TestObject()
+        target = StatTestObject()
 
         mb1 = MessageBus()
         mb2 = MessageBus()

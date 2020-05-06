@@ -80,6 +80,7 @@ def extract_plane(buffer: Buffer, offset: int, frame: VideoFrame, planeno: int):
 
 
 FORMAT_COMPATBGR32 = RawFormat(
+    "video",
     ColorFamily.RGB,
     ["b", "g", "r", None],
     False,
@@ -90,6 +91,7 @@ FORMAT_COMPATBGR32 = RawFormat(
     (0, 0)
 )
 FORMAT_COMPATYUY2 = RawFormat(
+    "video",
     ColorFamily.YUV,
     ["y", "u", "y", "v"],
     False,
@@ -180,10 +182,13 @@ class VapourSynthFrame(Frame):
         frame: VideoFrame = await _fut
 
         # Convert plane indices of planar formats transparently.
-        planename = format.fields[plane]
-        if planename is None:
-            return len(buffer) - offset
-        planeidx = format.family.simple_fields.index(planename)
+        if format.planar:
+            planename = format.fields[plane]
+            if planename is None:
+                return len(buffer) - offset
+            planeidx = format.family.simple_fields.index(planename)
+        else:
+            planeidx = plane
 
         return extract_plane(buffer, offset, frame, planeidx)
 
