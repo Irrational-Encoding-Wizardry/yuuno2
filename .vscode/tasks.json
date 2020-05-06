@@ -7,21 +7,21 @@
             "label": "Compile @yuuno2/networking",
             "type": "npm",
             "script": "tsc",
-            "path": "yuuno2.js/packages/networking/",
+            "path": "javascript/packages/networking/",
             "problemMatcher": []
         },
         {
             "label": "Compile @yuuno2/clips",
             "type": "npm",
             "script": "tsc",
-            "path": "yuuno2.js/packages/clips/",
+            "path": "javascript/packages/clips/",
             "problemMatcher": []
         },
         {
             "label": "Compile @yuuno2/remote",
             "type": "npm",
             "script": "tsc",
-            "path": "yuuno2.js/packages/remote/",
+            "path": "javascript/packages/remote/",
             "problemMatcher": []
         }
     ]

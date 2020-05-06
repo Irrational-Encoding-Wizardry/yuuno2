@@ -1,26 +1,34 @@
+#!/usr/bin/env python
+# -*- coding: utf-8 -*-
+
+# Yuuno - IPython + VapourSynth
+# Copyright (C) 2020 StuxCrystal (Roland Netzsch <stuxcrystal@encode.moe>)
+#
+# This program is free software: you can redistribute it and/or modify
+# it under the terms of the GNU Lesser General Public License as published by
+# the Free Software Foundation, either version 3 of the License, or
+# (at your option) any later version.
+#
+# This program is distributed in the hope that it will be useful,
+# but WITHOUT ANY WARRANTY; without even the implied warranty of
+# MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+# GNU Lesser General Public License for more details.
+#
+# You should have received a copy of the GNU Lesser General Public License
+# along with this program.  If not, see <http://www.gnu.org/licenses/>.
 import asyncio
 from functools import wraps
 
 from aiounittest import AsyncTestCase
 
 from yuuno2.tests.utils import timeout_context, force_release
+from yuuno2.tests.utils import with_registered_yuuno
 from yuuno2.asyncutils import register_event_loop, clear_event_loop
 from yuuno2.resource_manager import Resource
 from yuuno2.networking.message import Message
 from yuuno2.networking.connection import pipe
 from yuuno2.networking.rpc import Server, Client, RPCCallFailed
 from yuuno2.networking.manager import make_managed_connection, RemoteManager, ObjectManager
-
-
-def _with_registered_yuuno(func):
-    @wraps(func)
-    async def _wrapper(self, *args, **kwargs):
-        register_event_loop(asyncio.get_running_loop())
-        try:
-            return await func(self, *args, **kwargs)
-        finally:
-            clear_event_loop()
-    return _wrapper
 
 
 class DynTestObj(Resource):
@@ -43,7 +51,7 @@ class DynTestObj(Resource):
 
 class TestManager(AsyncTestCase):
 
-    @_with_registered_yuuno
+    @with_registered_yuuno
     async def test_temporary_object(self):
         s1, s2 = pipe()
         local = ObjectManager(Server(s1))
@@ -70,7 +78,7 @@ class TestManager(AsyncTestCase):
             self.assertFalse(obj.acquired)
             self.assertTrue(obj.resource_state.released)
 
-    @_with_registered_yuuno
+    @with_registered_yuuno
     async def test_temporary_registration(self):
         s1, s2 = pipe()
         local = ObjectManager(Server(s1))
@@ -98,7 +106,7 @@ class TestManager(AsyncTestCase):
                 self.assertEqual(result.data, {"x": id(self)%2000, "test": id(self)})
         
 
-    @_with_registered_yuuno
+    @with_registered_yuuno
     async def test_service_unregister(self):
         s1, s2 = pipe()
         local = ObjectManager(Server(s1))

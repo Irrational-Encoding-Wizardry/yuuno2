@@ -25,3 +25,47 @@ export const makeCounter: (start?: number, step?:number)=>()=>number = (function
         }
     }
 })();
+
+
+export class PromiseDelegate<T> {
+
+    private _promise: Promise<T>;
+    private _deferred: ((rs: (val: T) => void, rj: (err: any) => void) => void) | null = null;
+    private _resolve: (val: T) => void | null = null;
+    private _reject: (err: any) => void | null = null;
+
+    constructor() {
+        this._deferred = null;
+        this._resolve = null;
+        this._reject = null;
+
+        this._promise = new Promise<T>((rs, rj) => {
+            this._resolve = (r) => rs(r);
+            this._reject = (r) => rj(r);
+
+            if (this._deferred !== null) {
+                this._deferred(this._resolve, this._reject);
+            }
+        });
+    }
+
+    resolve(t: T) : void {
+        if (this._resolve === null) {
+            this._deferred = (rs, rj) => {rs(t)};
+        } else {
+            this._resolve(t);
+        }
+    }
+
+    reject(reason: any) {
+        if (this._reject === null) {
+            this._deferred = (rs, rj) => {rj(reason)};
+        } else {
+            this._reject(reason);
+        }
+    }
+
+    get promise() : Promise<T> {
+        return this._promise;
+    }
+}

@@ -16,7 +16,20 @@
 #
 # You should have received a copy of the GNU Lesser General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
-from asyncio import wait_for
+from functools import wraps
+from asyncio import wait_for, get_running_loop
+from yuuno2.asyncutils import register_event_loop, clear_event_loop
+
+
+def with_registered_yuuno(func):
+    @wraps(func)
+    async def _wrapper(self, *args, **kwargs):
+        register_event_loop(get_running_loop())
+        try:
+            return await func(self, *args, **kwargs)
+        finally:
+            clear_event_loop()
+    return _wrapper
 
 
 class timeout_context(object):

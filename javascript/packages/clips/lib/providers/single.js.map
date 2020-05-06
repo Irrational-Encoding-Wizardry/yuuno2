@@ -1,1 +1,0 @@
-{"version":3,"file":"single.js","sourceRoot":"","sources":["../../src/providers/single.ts"],"names":[],"mappings":";;;;;;;;;;;AAEA,MAAa,oBAAoB;IAG7B,YAAY,MAAc;QACtB,IAAI,CAAC,OAAO,GAAG,MAAM,CAAC;IAC1B,CAAC;IAEK,GAAG,CAAC,OAAe;;YACrB,OAAO,IAAI,CAAC,OAAO,CAAC;QACxB,CAAC;KAAA;IACK,KAAK;;YACP,MAAM,IAAI,CAAC,OAAO,CAAC,KAAK,EAAE,CAAA;QAC9B,CAAC;KAAA;CACJ;AAbD,oDAaC"}

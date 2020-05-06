@@ -22,20 +22,12 @@ from yuuno2.networking.rpc import Server, Client, make_client_server_on, RPCCall
 
 from yuuno2.asyncutils import register_event_loop, clear_event_loop
 
+from yuuno2.tests.utils import with_registered_yuuno
+
 import asyncio
 from functools import wraps
 from aiounittest import AsyncTestCase
 
-
-def _with_registered_yuuno(func):
-    @wraps(func)
-    async def _wrapper(self, *args, **kwargs):
-        register_event_loop(asyncio.get_running_loop())
-        try:
-            return await func(self, *args, **kwargs)
-        finally:
-            clear_event_loop()
-    return _wrapper
 
 
 class StatTestObject:
@@ -69,7 +61,7 @@ class DynTestObj:
 
 class TestServer(AsyncTestCase):
 
-    @_with_registered_yuuno
+    @with_registered_yuuno
     async def test_server_answer_synchronous(self):
         last_receive = None
         def _recv(message):
@@ -92,7 +84,7 @@ class TestServer(AsyncTestCase):
             self.assertEqual(last_receive, Message({"id": 1, "type": "result", "payload": {"id": id(self)}}))
             self.assertEqual(target.last_call, id(self))
 
-    @_with_registered_yuuno
+    @with_registered_yuuno
     async def test_server_answer_asynchronous(self):
         last_receive = None
         def _recv(message):
@@ -115,7 +107,7 @@ class TestServer(AsyncTestCase):
             self.assertEqual(last_receive, Message({"id": 1, "type": "result", "payload": {"id": id(self)}}))
             self.assertEqual(target.last_call, id(self))
 
-    @_with_registered_yuuno
+    @with_registered_yuuno
     async def test_server_answer_fail(self):
         last_receive = None
         def _recv(message):
@@ -140,7 +132,7 @@ class TestServer(AsyncTestCase):
 
 class TestClient(AsyncTestCase):
 
-    @_with_registered_yuuno
+    @with_registered_yuuno
     async def test_client_proxy_sync(self):
         target = StatTestObject()
 
@@ -157,7 +149,7 @@ class TestClient(AsyncTestCase):
             msg = await asyncio.wait_for(proxy.call(id=id(self)), 5)
             self.assertEqual(msg, Message({"id": id(self)}))
 
-    @_with_registered_yuuno
+    @with_registered_yuuno
     async def test_client_proxy(self):
         target = StatTestObject()
 
@@ -179,7 +171,7 @@ class TestClient(AsyncTestCase):
 
 class TestPipedConnection(AsyncTestCase):
 
-    @_with_registered_yuuno
+    @with_registered_yuuno
     async def test_two_endpoints(self):
         t1, t2 = DynTestObj({"t": 1}), DynTestObj({"t": 2})
 

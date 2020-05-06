@@ -159,7 +159,7 @@ class RemoteFrame(Frame):
 
     async def get_metadata(self):
         await self.ensure_acquired()
-        msg = await self.rpc.on_metadata(frameno=None)
+        msg = await self.rpc.metadata(frameno=None)
         return msg.data["metadata"]
 
     async def can_render(self, format):
@@ -203,11 +203,11 @@ class RemoteClip(Clip):
 
     def __getitem__(self, frameno):
         self.ensure_acquired_sync()
-        return RemoteFrame(self.rpc, frameno, size)
+        return RemoteFrame(self.rpc, frameno, self.size)
     
     async def get_metadata(self):
         await self.ensure_acquired()
-        msg = await self.rpc.on_metadata(frameno=None)
+        msg = await self.rpc.metadata(frameno=None)
         return msg.data["metadata"]
 
     async def resize(self, size: Size):
