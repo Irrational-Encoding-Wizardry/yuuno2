@@ -11,12 +11,6 @@ class WrappedScript(Script):
     def __init__(self, script: Script):
         self.script = script
 
-    def activate(self) -> None:
-        self.script.activate()
-
-    def deactivate(self) -> None:
-        self.script.deactivate()
-
     async def set_config(self, key: str, value: ConfigTypes) -> None:
         await self.ensure_acquired()
         await self.script.set_config(key, value)

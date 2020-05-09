@@ -112,5 +112,4 @@ temp/
 
 ###
 # Custom
-!packages/*/lib/.gitkeep
 packages/*/lib/

@@ -36,11 +36,11 @@ class VapourSynthScript(Script):
         self.config = {}
         self.environment = environment
 
-    def activate(self) -> None:
-        self.environment.__enter__()
-
-    def deactivate(self) -> None:
-        self.environment.__exit__(None, None, None)
+    def use(self):
+        if hasattr(self.environment, "use"):
+            return self.environment.use()
+        else:
+            return self.environment
 
     async def set_config(self, key: str, value: ConfigTypes) -> None:
         await self.ensure_acquired()
@@ -73,7 +73,7 @@ class VapourSynthScript(Script):
         return {str(k): VapourSynthClip(self, d) for k, d in outputs}
 
     async def _acquire(self) -> None:
-        with self.environment:
+        with self.use():
             core: Core = get_core()
             self.config.update({
                 'vs.core.add_cache':       core.add_cache,

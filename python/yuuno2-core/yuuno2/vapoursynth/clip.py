@@ -49,7 +49,7 @@ CONVERTERS = {
 async def get_configuration(script: Script) -> ConfigMapping:
     config = [[k, ensure_future(script.get_config("vs." + k, d))] for k, d in DEFAULT_CONFIGURATION.items()]
     await gather(*(d for k, d in config))
-    with script.inside():
+    with script.use():
         return {k: CONVERTERS.get(k, lambda v: v)(d.result()) for k, d in config}
 
 
@@ -176,7 +176,7 @@ class VapourSynthFrame(Frame):
             raise IndexError(f"Plane index out of range (0 <= {plane} <= {format.num_planes}")
 
         config = dict(await get_configuration(self.script))
-        with self.script.inside():
+        with self.script.use():
             _converted = self._convert(format, config)
             _fut = get_frame_async(_converted, 0)
         frame: VideoFrame = await _fut
@@ -270,7 +270,7 @@ class VapourSynthFrame(Frame):
         return self._raw_frame.props
 
     async def _acquire(self) -> None:
-        with self.script.inside():
+        with self.script.use():
             self._raw_node = self.clip[self.frameno]
             _fut = get_frame_async(self._raw_node, 0)
 
@@ -296,7 +296,7 @@ class _VapourSynthClip(Clip):
 
     async def resize(self, size: Size) -> Clip:
         config = dict(await get_configuration(self.script))
-        with self.script.inside():
+        with self.script.use():
             new_clip = config['resizer'](
                 clip=self.clip,
                 width=size.width,

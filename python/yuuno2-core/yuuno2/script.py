@@ -32,25 +32,6 @@ NOT_GIVEN = object()
 class Script(Resource, ABC):
 
     @abstractmethod
-    def activate(self) -> None:
-        """
-        :return:
-        """
-        pass
-
-    @abstractmethod
-    def deactivate(self) -> None:
-        pass
-
-    @contextmanager
-    def inside(self):
-        self.activate()
-        try:
-            yield
-        finally:
-            self.deactivate()
-
-    @abstractmethod
     async def set_config(self, key: str, value: ConfigTypes) -> None:
         pass
 

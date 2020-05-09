@@ -104,7 +104,10 @@ class ScriptEnvironment(object):
         if VapourSynthCAPI.vpy_createScript(self._handle):
             self._raise_error()
 
-        self._env = self._perform_raw(vapoursynth.vpy_current_environment)
+        if not hasattr(vapoursynth, "get_current_environment"):
+            self._env = vapoursynth.vpy_current_environment()
+        else:
+            self._env = vapoursynth.get_current_environment()
 
     @property
     def _handle(self):

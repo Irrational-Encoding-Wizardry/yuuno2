@@ -5,6 +5,7 @@ from traitlets.config import SingletonConfigurable, Instance
 from yuuno2.asyncutils import YuunoThread
 from yuuno2.resource_manager import NonAbcResource, register
 from yuuno2.script import Script
+
 from yuuno2notebook.control import ControlMagics
 from yuuno2notebook.debug import DebugMagics
 from yuuno2notebook.runvpy import RunVpyMagics
@@ -18,22 +19,17 @@ class Yuuno2Notebook(SingletonConfigurable, NonAbcResource):
     current_core = Instance(Script, allow_none=True, default_value=None)
 
     async def create_new_core(self):
-        if self.current_core is not None:
-            await run_in_main_thread(self.current_core.deactivate)
-            await self.comms.release()
-            await self.current_core.release()
-
-        self.current_core = await self.provider.get()
-        await self.current_core.acquire()
-        await run_in_main_thread(self.current_core.activate)
-        register(self, self.current_core)
+        self.current_core = await self.provider.get(default=True)
 
     async def _acquire(self):
         # Try to import VapourSynth.
         try:
             import vapoursynth
         except ImportError:
-            raise Exception("Failed to import VapourSynth. Aborting.") from None
+            raise ModuleNotFoundError("Failed to import VapourSynth. Aborting.") from None
+
+        if not hasattr(vapoursynth, "has_policy"):
+            raise ModuleNotFoundError("This VapourSynth is not supported. Please update your VapourSynth version to at least R51.")
 
         # Debug magics
         mgs = DebugMagics(shell=self.shell)
@@ -41,8 +37,8 @@ class Yuuno2Notebook(SingletonConfigurable, NonAbcResource):
         register(self, mgs)
 
         # Preparing VSScript.
-        from yuuno2.vapoursynth.vsscript.script import VSScriptProvider
-        self.provider = VSScriptProvider()
+        from yuuno2notebook.vscore import YuunoScriptProvider
+        self.provider = YuunoScriptProvider()
         await self.provider.acquire()
         register(self, self.provider)
         await self.create_new_core()

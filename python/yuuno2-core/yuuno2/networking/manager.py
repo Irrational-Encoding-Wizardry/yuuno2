@@ -53,7 +53,7 @@ class ObjectManager(Resource):
         self.objects[name] = obj
         on_release(obj, lambda _: self.objects.pop(name, None))
 
-    def on_version(self):
+    def on_version(self, supported=None):
         self.ensure_acquired_sync()
         return Message({"version": 1, "extensions": []})
 
@@ -158,6 +158,10 @@ class RemoteManager(Resource):
         self.proxy = await self.client.get(ObjectManager.MANAGER_ID)
         await self.proxy.acquire()
         register(self, self.proxy)
+
+        version: Message = await self.proxy.version(supported=[{"version": 1, "extension": []}])
+        if version.data["version"] != 1:
+            raise RuntimeError("Unsupported RPC-Connection version.")
 
     async def _release(self):
         await self.client.release(force=False)

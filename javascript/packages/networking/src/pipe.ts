@@ -18,7 +18,6 @@
 import {Connection} from './base';
 import {MessageBus} from './messagebus';
 import {SimpleConnection} from './connection';
-import { Handler } from './handler';
 
 /**
  * The async connection decouples the message-send operation from the event handlers it is going to call.

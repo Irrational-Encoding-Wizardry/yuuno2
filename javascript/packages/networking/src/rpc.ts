@@ -10,10 +10,12 @@ export class Server {
 
     constructor(conn: Connection) {
         this.conn = conn;
-        this.connToken = this.conn.registerMessageHandler(this._receive);
+        this.connToken = this.conn.registerMessageHandler((msg: Message) => this._receive(msg));
     }
 
     private async _receive(msg: Message) : Promise<void> {
+        if (msg === null) return await this.conn.close();
+
         if (msg.text.type !== "invoke") return;
         if (msg.text.id === undefined) return;
 
@@ -24,7 +26,7 @@ export class Server {
         }
         
         let obj : any = this.objects.get(msg.text.target);
-        let func: any = obj[msg.text.method];
+        let func: any = obj["on_" + msg.text.method];
         if (typeof func !== "function") {
             await this.conn.send({text: {type: "error", id: id, message: "Unknown method."}, blobs: []});
             return;
@@ -33,7 +35,7 @@ export class Server {
         let payload: any = {text: msg.text.payload||{}, blobs: msg.blobs};
 
         // Fire and forget the invocation.
-        this._invoke(id, obj, func, payload).then(()=>{}, console.error);
+        this._invoke(id, obj, func, payload).catch(console.error);
     }
 
     private async _invoke(id: any, thisArg: any, func: (msg: Message) => Promise<Message>|Message, payload: Message) : Promise<void> {
@@ -93,10 +95,10 @@ export class Client {
 
     constructor(conn: Connection) {
         this.conn = conn;
-        this.connToken = this.conn.registerMessageHandler(this._receive);
+        this.connToken = this.conn.registerMessageHandler((msg) => this._receive(msg));
     }
 
-    register_type(typename: string, ...names: string[]) : void {
+    registerType(typename: string, ...names: string[]) : void {
         this.types.set(typename, names);
     }
 
@@ -116,10 +118,12 @@ export class Client {
     async _call(target: string, method: string, data: Message) : Promise<Message> {
         const requestId = ++this.currentId;
         const delegate = new PromiseDelegate<Message>();
+        delegate.promise.then((_) => this.waiters.delete(requestId)).catch((_) => this.waiters.delete(requestId));
 
         this.waiters.set(requestId, delegate);
         await this.conn.send({
             text: {
+                id: requestId,
                 type: "invoke",
                 target: target,
                 method: method,
@@ -132,13 +136,14 @@ export class Client {
     }
 
     async _receive(msg: Message) : Promise<void> {
-        if (msg.text.type !== "return" && msg.text.type !== "error") return;
-        if (!!msg.text.id) return;
+        if (msg === null) return await this.close();
+
+        if (msg.text.type !== "result" && msg.text.type !== "error") return;
+        if (!msg.text.id) return;
 
         let id = msg.text.id;
         if (!this.waiters.has(id)) return;
         let delegate = this.waiters.get(id);
-        this.waiters.delete(id);
 
         if (msg.text.type == "error") {
             delegate.reject(new RPCCallFailedError(msg.text.message || "Remote call failed."));
@@ -148,6 +153,8 @@ export class Client {
     }
 
     async close() : Promise<void> {
+        for (let waiter of Array.from(this.waiters.values()))
+            waiter.reject(new Error("Connection has been closed."));
         this.conn.unregisterMessageHandler(this.connToken);
     }
 }

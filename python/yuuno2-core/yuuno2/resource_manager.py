@@ -142,9 +142,7 @@ class Resource(ABC):
         return True
 
     async def ensure_acquired(self) -> None:
-        if not self.acquired:
-            raise AssertionError("Resource not acquired.")
-
+        self.ensure_acquired_sync()
         if await self._release_deferred():
             raise AssertionError("Parent resource incorrectly released.")
 
@@ -239,7 +237,10 @@ class NonAbcResource:
         pass
 
     async def ensure_acquired(self):
-        return self.resource.ensure_acquired()
+        return await self.resource.ensure_acquired()
+
+    def ensure_acquired_sync(self) -> None:
+        self.resource.ensure_acquired_sync()
 
 
 ResourceTarget = Union[Resource, NonAbcResource]

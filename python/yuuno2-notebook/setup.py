@@ -29,14 +29,14 @@ requirements = [
     "notebook", "IPython",                                      # IPython is technically part of notebook.
     "yuuno2-core",
     "blessed",
-    "pillow"
+    "pillow",
+    "vapoursynth>=50"
 ]
 
 test_requirements = [
     "aiounittest"
 ]
 extras_requires = {
-    "vapoursynth": ["vapoursynth"]
 }
 setup_requires = [
 
@@ -56,6 +56,7 @@ setup(
     install_requires=requirements,
     extras_require=extras_requires,
     setup_requires=setup_requires,
+    python_requires=">=3.8",
     license="GNU Lesser General Public License v3 (LGPLv3)",
     zip_safe=False,
     keywords='yuuno',
