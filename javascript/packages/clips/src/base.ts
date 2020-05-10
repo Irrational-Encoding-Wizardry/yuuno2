@@ -80,6 +80,14 @@ export interface Clip {
      */
     get(frameno: number) : Promise<Frame>;
 
+
+    /**
+     * Tries to resize the clip to the desired size.
+     * 
+     * If this is not possible it returns null.
+     */
+    resize(desiredSize: Size) : Promise<Clip|null>;
+
     /**
      * Releases the resources associated with the clip (and frames derived from this clip).
      */

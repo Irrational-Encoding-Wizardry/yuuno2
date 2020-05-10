@@ -16,7 +16,7 @@
  * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
-export { RawFormat, SampleType, ColorFamily } from './format';
+export { Size, RawFormat, SampleType, ColorFamily } from './format';
 export { Clip, Frame } from './base';
 export { Script, ScriptProvider, ConfigTypes } from './scripts';
 

@@ -94,4 +94,8 @@ export class SimpleClip implements Clip {
     }
 
     async close(): Promise<void> {}
+
+    async resize(_: Size) : Promise<null> {
+        return null;
+    }
 }
