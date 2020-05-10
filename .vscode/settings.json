@@ -7,12 +7,16 @@
         "**/.DS_Store": true
     },
     "files.watcherExclude": {
+        "**/.pytest_cache": true,
         "**/.git/objects/**": true,
         "**/.git/subtree-cache/**": true,
-        "**/node_modules/*/**": true,
-        "**/.venv": true,
-        "yuuno2.js/**/lib": true,
-        "yuuno2.js/**/dist": true
+        "**/javascript/**/node_modules/*/**": true,
+        "**/python/**/.venv": true,
+        "**/python/**/lib": true,
+        "**/python/**/javascript": true,
+        "**/python/**/dist": true,
+        "**/python/**/__pycache__": true,
+        "**/python/**/*.egg-info": true
     },
     "python.pythonPath": "${workspaceFolder}/python/.venv/bin/python3.8",
     "python.testing.unittestEnabled": false,

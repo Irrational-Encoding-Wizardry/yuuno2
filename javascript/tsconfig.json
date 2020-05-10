@@ -10,7 +10,8 @@
         "target": "ES6",
         "sourceMap": true,
         "lib": [
-            "ES6"
+            "ES6",
+            "DOM"
         ],
         "baseUrl": ".",
         "paths": {

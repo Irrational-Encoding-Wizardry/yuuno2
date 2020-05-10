@@ -47,7 +47,11 @@ module.exports = {
         path: path.resolve(__dirname, "lib"),
         
         libraryTarget: "amd",
-        auxiliaryComment: "Yuuno2 Jupyter Notebook (JupyterLab)"
+        auxiliaryComment: "Yuuno2 Jupyter Notebook (JupyterLab)",
+
+        externals: [
+            '@jupyter-widgets/base'
+        ]
     },
     devtool: "source-map"
 };

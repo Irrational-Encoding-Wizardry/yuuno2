@@ -1,7 +1,7 @@
 def _jupyter_nbextension_paths():
     return [{
         'section': 'notebook',
-        'src': 'javascript/notebook',
-        'dest': 'yuuno2notebook',
-        'require': 'yuuno2notebook'
+        'src': 'static',
+        'dest': 'yuuno2-notebook',
+        'require': 'yuuno2-notebook/yuuno2notebook'
     }]

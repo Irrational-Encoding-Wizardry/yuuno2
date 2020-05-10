@@ -1,0 +1,1 @@
+export { WidgetConnection } from './widget';

@@ -21,7 +21,7 @@
     "url": "git+https://github.com/irrational-encoding-wizardry/yuuno2.git"
   },
   "scripts": {
-    "copyToPython": "rm -rf ../../../../python/yuuno2-notebook/javascript/notebook/* && rm -rf ../../../../python/yuuno2-notebook/javascript/notebook/* && echo>../../../../python/yuuno2-notebook/javascript/notebook/.gitkeep && cp lib/* ../../../../python/yuuno2-notebook/javascript/notebook",
+    "copyToPython": "rm -rf ../../../../python/yuuno2-notebook/yuuno2notebook/static/* && echo>../../../../python/yuuno2-notebook/yuuno2notebook/static/.gitkeep && cp lib/* ../../../../python/yuuno2-notebook/yuuno2notebook/static",
     "build": "webpack && yarn run copyToPython"
   },
   "bugs": {
@@ -37,6 +37,7 @@
     "webpack-cli": "^3.3.11"
   },
   "dependencies": {
+    "@yuuno2/jupyter-networking": "^2.0.0",
     "@yuuno2/remote": "^2.0.0"
   }
 }
