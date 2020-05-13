@@ -1,7 +1,7 @@
 {
   "name": "@yuuno2/jupyter-notebook",
   "version": "2.0.0",
-  "description": "The UI Part for Jupyter-Applications",
+  "description": "The Jupyter Notebook Extension",
   "author": "StuxCrystal <stuxcrystal@encode.moe>",
   "homepage": "https://yuuno.dev",
   "license": "GPL-3.0",
@@ -38,6 +38,7 @@
   },
   "dependencies": {
     "@yuuno2/jupyter-networking": "^2.0.0",
+    "@yuuno2/jupyter-ui": "^2.0.0",
     "@yuuno2/remote": "^2.0.0"
   }
 }

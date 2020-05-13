@@ -6,13 +6,14 @@ verify_ssl = true
 [dev-packages]
 pytest = "*"
 aiounittest = "*"
-jupyter = "*"
 
 [packages]
 yuuno2-core = {editable = true,path = "./yuuno2-core"}
 yuuno2-server = {editable = true,path = "./yuuno2-server"}
 yuuno2-notebook = {editable = true,path = "./yuuno2-notebook"}
 vapoursynth = "*"
+jupyter = "*"
+ipywidgets = "*"
 
 [requires]
 python_version = "3.8"

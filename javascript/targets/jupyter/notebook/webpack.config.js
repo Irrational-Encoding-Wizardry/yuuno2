@@ -46,12 +46,13 @@ module.exports = {
         filename: 'yuuno2notebook.js',
         path: path.resolve(__dirname, "lib"),
         
+        library: '@yuuno2/jupyter',
         libraryTarget: "amd",
         auxiliaryComment: "Yuuno2 Jupyter Notebook (JupyterLab)",
 
-        externals: [
-            '@jupyter-widgets/base'
-        ]
+    },
+    externals: {
+        '@jupyter-widgets/base': '@jupyter-widgets/base'
     },
     devtool: "source-map"
 };
